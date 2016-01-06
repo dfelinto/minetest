@@ -513,7 +513,8 @@ bool ClientLauncher::create_engine_device()
 	u16 fsaa = g_settings->getU16("fsaa");
 
 	// stereo buffer required for pageflip stereo
-	bool stereo_buffer = g_settings->get("3d_mode") == "pageflip";
+	std::string draw_mode = g_settings->get("3d_mode");
+	bool stereo_buffer = (draw_mode == "pageflip") || (draw_mode == "planovision");
 
 	// Determine driver
 	video::E_DRIVER_TYPE driverType = video::EDT_OPENGL;

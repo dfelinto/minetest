@@ -1872,7 +1872,9 @@ void Game::run()
 
 void Game::shutdown()
 {
-	if (g_settings->get("3d_mode") == "pageflip") {
+	std::string draw_mode = g_settings->get("3d_mode");
+
+	if ((draw_mode == "pageflip") || (draw_mode == "planovision")) {
 		driver->setRenderTarget(irr::video::ERT_STEREO_BOTH_BUFFERS);
 	}
 
