@@ -523,6 +523,15 @@
 #    type: enum values: none
 # 3d_mode = none none,anaglyph,interlaced,topbottom,sidebyside,pageflip,planovision
 
+#    Planovision settings
+# planovision_width float 1.28
+# planovision_height float 0.72
+# planovision_vrpn_device_head string Cap@zenon
+# planovision_vrpn_device_wii string WiiMote0@ariel
+# planovision_swizzle_x enum -X, -Y-, -Z, +X, +Y, +Z
+# planovision_swizzle_y enum -X, -Y-, -Z, +X, +Y, +Z
+# planovision_swizzle_z enum -X, -Y-, -Z, +X, +Y, +Z
+
 #    In-game chat console background color (R,G,B).
 #    type: string
 # console_color = (0,0,0)

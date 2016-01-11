@@ -75,6 +75,15 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("directional_colored_fog", "true");
 	settings->setDefault("tooltip_show_delay", "400");
 
+	// Planovision settings
+	settings->setDefault("planovision_width", "1.28");
+	settings->setDefault("planovision_height", "0.72");
+	settings->setDefault("planovision_vrpn_device_head", "Cap@zenon");
+	settings->setDefault("planovision_vrpn_device_wii", "WiiMote0@ariel");
+	settings->setDefault("planovision_swizzle_x", "-X");
+	settings->setDefault("planovision_swizzle_y", "+Z");
+	settings->setDefault("planovision_swizzle_z", "+Y");
+
 	// Some (temporary) keys for debugging
 	settings->setDefault("keymap_print_debug_stacks", "KEY_KEY_P");
 	settings->setDefault("keymap_quicktune_prev", "KEY_HOME");
