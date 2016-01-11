@@ -49,6 +49,74 @@ void draw_selectionbox(video::IVideoDriver* driver, Hud& hud,
 	driver->setMaterial(oldmaterial);
 }
 
+/* analog to glFrustum*/
+void getProjectionFrustum(
+        const float left,
+        const float right,
+        const float bottom,
+        const float top,
+        const float near,
+        const float far,
+        irr::core::matrix4& matrix)
+{
+	matrix[0] = 2.0f * near / (right - left);
+	matrix[1] = 0.0f;
+	matrix[2] = (right + left) / (right - left);
+	matrix[3] = 0.0f;
+
+	matrix[4] = 0.0f;
+	matrix[5] = 2.0f * near / (top - bottom);
+	matrix[6] = (top + bottom) / (top - bottom);
+	matrix[7] = 0.0f;
+
+	matrix[8] = 0.0f;
+	matrix[9] = 0.0f;
+	matrix[10] = (far + near) / (far - near);
+	matrix[11] = -2.0f * far * near / (far - near);
+
+	matrix[12] = 0.0f;
+	matrix[13] = 0.0f;
+	matrix[14] = -1.0f;
+	matrix[15] = 0.0f;
+}
+
+void calculate_planovision(
+        paralax_sign psign,
+        Camera& camera,
+        const float halfInterocularDistance,
+        const float convergenceDistance,
+        irr::core::matrix4& projectionMatrix,
+        v3f& eyePosition,
+        v3f& target,
+        irr::core::matrix4& movement
+        )
+{
+	//TODO - to handle VRPN
+	scene::ICameraSceneNode* cameraNode = camera.getCameraNode();
+	irr::core::matrix4 startMatrix = cameraNode->getAbsoluteTransformation();
+
+	movement.setTranslation(irr::core::vector3df((int) psign * halfInterocularDistance, 0.0f, 0.0f));
+
+	eyePosition = (startMatrix * movement).getTranslation();
+	target = eyePosition + camera.getDirection();
+
+	float near, far, fov;
+	near = cameraNode->getNearValue();
+	far = cameraNode->getFarValue();
+	fov = cameraNode->getFOV();
+
+	float left, right, bottom, top, offset;
+	float aspectRatio = cameraNode->getAspectRatio();
+
+	top = near * tan(fov * 0.5f);
+	bottom = -top;
+	right = aspectRatio * top;
+	left = -right;
+
+	offset = (int) -psign * halfInterocularDistance * near / convergenceDistance;
+	getProjectionFrustum(left + offset, right + offset, bottom, top, near, far, projectionMatrix);
+}
+
 void draw_anaglyph_3d_mode(Camera& camera, bool show_hud, Hud& hud,
 		std::vector<aabb3f> hilightboxes, video::IVideoDriver* driver,
 		scene::ISceneManager* smgr, bool draw_wield_tool, Client& client,
@@ -488,30 +556,34 @@ void draw_planovision_mode(Camera& camera, bool show_hud,
 		bool draw_wield_tool, Client& client, gui::IGUIEnvironment* guienv,
 		video::SColor skycolor)
 {
-	/* preserve old setup*/
-	irr::core::vector3df oldPosition = camera.getCameraNode()->getPosition();
-	irr::core::vector3df oldTarget   = camera.getCameraNode()->getTarget();
+	scene::ICameraSceneNode *cameraNode = camera.getCameraNode();
 
-	irr::core::matrix4 startMatrix =
-			camera.getCameraNode()->getAbsoluteTransformation();
-	irr::core::vector3df focusPoint = (camera.getCameraNode()->getTarget()
-			- camera.getCameraNode()->getAbsolutePosition()).setLength(1)
-			+ camera.getCameraNode()->getAbsolutePosition();
+	/* preserve old setup*/
+	irr::core::vector3df oldPosition = cameraNode->getPosition();
+	irr::core::vector3df oldTarget   = cameraNode->getTarget();
+
+	float halfInterocularDistance = g_settings->getFloat("3d_paralax_strength");
+	float convergenceDistance = g_settings->getFloat("3d_convergence_distance");
+
+	irr::core::matrix4 projectionMatrix, movement;
+	v3f eyePosition, target;
 
 	//Left eye...
 	driver->setRenderTarget(irr::video::ERT_STEREO_LEFT_BUFFER);
-
-	irr::core::vector3df leftEye;
-	irr::core::matrix4 leftMove;
-	leftMove.setTranslation(
-			irr::core::vector3df(-g_settings->getFloat("3d_paralax_strength"),
-					0.0f, 0.0f));
-	leftEye = (startMatrix * leftMove).getTranslation();
+	calculate_planovision(LEFT,
+	                      camera,
+	                      halfInterocularDistance,
+	                      convergenceDistance,
+	                      projectionMatrix,
+	                      eyePosition,
+	                      target,
+	                      movement);
 
 	//clear the depth buffer, and color
 	driver->beginScene(true, true, irr::video::SColor(200, 200, 200, 255));
-	camera.getCameraNode()->setPosition(leftEye);
-	camera.getCameraNode()->setTarget(focusPoint);
+	cameraNode->setPosition(eyePosition);
+	cameraNode->setTarget(target);
+	driver->setTransform(video::ETS_PROJECTION, projectionMatrix);
 	smgr->drawAll();
 	driver->setTransform(video::ETS_WORLD, core::IdentityMatrix);
 
@@ -519,7 +591,7 @@ void draw_planovision_mode(Camera& camera, bool show_hud,
 		draw_selectionbox(driver, hud, hilightboxes, show_hud);
 
 		if (draw_wield_tool)
-			camera.drawWieldedTool(&leftMove);
+			camera.drawWieldedTool(&movement);
 
 		hud.drawHotbar(client.getPlayerItem());
 		hud.drawLuaElements(camera.getOffset());
@@ -529,18 +601,20 @@ void draw_planovision_mode(Camera& camera, bool show_hud,
 
 	//Right eye...
 	driver->setRenderTarget(irr::video::ERT_STEREO_RIGHT_BUFFER);
-
-	irr::core::vector3df rightEye;
-	irr::core::matrix4 rightMove;
-	rightMove.setTranslation(
-			irr::core::vector3df(g_settings->getFloat("3d_paralax_strength"),
-					0.0f, 0.0f));
-	rightEye = (startMatrix * rightMove).getTranslation();
+	calculate_planovision(RIGHT,
+	                      camera,
+	                      halfInterocularDistance,
+	                      convergenceDistance,
+	                      projectionMatrix,
+	                      eyePosition,
+	                      target,
+	                      movement);
 
 	//clear the depth buffer, and color
 	driver->beginScene(true, true, irr::video::SColor(200, 200, 200, 255));
-	camera.getCameraNode()->setPosition(rightEye);
-	camera.getCameraNode()->setTarget(focusPoint);
+	cameraNode->setPosition(eyePosition);
+	cameraNode->setTarget(target);
+	driver->setTransform(video::ETS_PROJECTION, projectionMatrix);
 	smgr->drawAll();
 	driver->setTransform(video::ETS_WORLD, core::IdentityMatrix);
 
@@ -548,7 +622,7 @@ void draw_planovision_mode(Camera& camera, bool show_hud,
 		draw_selectionbox(driver, hud, hilightboxes, show_hud);
 
 		if (draw_wield_tool)
-			camera.drawWieldedTool(&rightMove);
+			camera.drawWieldedTool(&movement);
 
 		hud.drawHotbar(client.getPlayerItem());
 		hud.drawLuaElements(camera.getOffset());
@@ -556,8 +630,8 @@ void draw_planovision_mode(Camera& camera, bool show_hud,
 
 	guienv->drawAll();
 
-	camera.getCameraNode()->setPosition(oldPosition);
-	camera.getCameraNode()->setTarget(oldTarget);
+	cameraNode->setPosition(oldPosition);
+	cameraNode->setTarget(oldTarget);
 }
 
 void draw_plain(Camera& camera, bool show_hud, Hud& hud,
