@@ -56,6 +56,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "util/directiontables.h"
 #include "util/pointedthing.h"
 #include "version.h"
+#include "vrpn.h"
 #include "minimap.h"
 
 #include "sound.h"
@@ -3907,6 +3908,9 @@ void Game::updateFrame(std::vector<aabb3f> &highlight_boxes,
 		f32 dtime, const VolatileRunFlags &flags, const CameraOrientation &cam)
 {
 	LocalPlayer *player = client->getEnv().getLocalPlayer();
+	VRPNManager *vrpn = client->getVRPN();
+
+	vrpn->loop();
 
 	/*
 		Fog range

@@ -57,11 +57,18 @@ endif()
 
 
 option(ENABLE_VRPN "Enable VRPN support for head tracking" TRUE)
-set(USE_VRPN FALSE)
+set(VRPN_LIBRARY ""
+		CACHE FILEPATH "VRPN library file")
+set(VRPN_INCLUDE_DIR ""
+		CACHE PATH "VRPN include dir")
+
+set(USE_CURL FALSE)
 
 if(ENABLE_VRPN)
 	message(STATUS "add VRPN library and include dir in the advanced options.")
-	mark_as_advanced(CLEAR VRPN_LIBRARY VRPN_INCLUDE_DIR)
+	set(USE_VRPN TRUE)
+else()
+	set(USE_VRPN FALSE)
 endif()
 
 option(ENABLE_GETTEXT "Use GetText for internationalization" FALSE)
@@ -506,6 +513,7 @@ set(client_SRCS
 	particles.cpp
 	shader.cpp
 	sky.cpp
+	vrpn.cpp
 	wieldmesh.cpp
 	${client_SCRIPT_SRCS}
 )

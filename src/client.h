@@ -35,6 +35,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "hud.h"
 #include "particles.h"
 #include "network/networkpacket.h"
+#include "vrpn.h"
 
 struct MeshMakeData;
 class MapBlockMesh;
@@ -421,6 +422,9 @@ public:
 	ClientEnvironment& getEnv()
 	{ return m_env; }
 
+	VRPNManager *getVRPN()
+	{ return m_vrpn; }
+
 	// Causes urgent mesh updates (unlike Map::add/removeNodeWithEvent)
 	void removeNode(v3s16 p);
 	void addNode(v3s16 p, MapNode n, bool remove_metadata = true);
@@ -682,6 +686,8 @@ private:
 	// TODO: Add callback to update these when g_settings changes
 	bool m_cache_smooth_lighting;
 	bool m_cache_enable_shaders;
+
+	VRPNManager *m_vrpn;
 
 	DISABLE_CLASS_COPY(Client);
 };

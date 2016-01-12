@@ -17,18 +17,18 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef VRPN_H_
-#define VRPN_H_
+#ifndef VRPN_MANAGER_H_
+#define VRPN_MANAGER_H_
 
 #include "vrpn_Tracker.h"
 #include "vrpn_Button.h"
 #include "vrpn_Analog.h"
 
-class VRPN
+class VRPNManager
 {
 public:
-	VRPN();
-	~VRPN();
+	VRPNManager();
+	~VRPNManager();
 
 	// return true if initialization was correct
 	int setup();
@@ -41,6 +41,10 @@ private:
 	vrpn_Tracker_Remote *m_vrpnTracker;
 	// wiimote
 	vrpn_Button_Remote *m_vrpnButton;
+	// planovision width
+	float m_width;
+	// planovision height
+	float m_height;
 };
 
-#endif /* VRPN_H_ */
+#endif /* VRPN_MANAGER_H_ */
