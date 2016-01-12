@@ -24,6 +24,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "util/timetaker.h"
 #include "fontengine.h"
 #include "guiscalingfilter.h"
+#include "vrpn.h"
 
 typedef enum {
 	LEFT = -1,
@@ -92,6 +93,7 @@ void calculate_planovision(
         )
 {
 	//TODO - to handle VRPN
+	// get position from vrpn
 	scene::ICameraSceneNode* cameraNode = camera.getCameraNode();
 	irr::core::matrix4 startMatrix = cameraNode->getAbsoluteTransformation();
 
