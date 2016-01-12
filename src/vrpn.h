@@ -46,7 +46,7 @@ public:
 	// update VRPN callbacks
 	int loop();
 
-	// called from
+	// called from vrpn callbacks
 	void resetNavigation()
 	{
 		m_scale = m_scaleScene;
@@ -64,26 +64,33 @@ public:
 		}
 	}
 
+	void updatePosition(float x, float y, float z);
+
 private:
 	void updateVehicle();
+	void setupSwizzle();
+
+	// planovision settings
+	float m_width;
+	float m_height;
+	float m_scaleScene;
+	float m_speed;
 
 	// head tracker
 	vrpn_Tracker_Remote *m_vrpnTracker;
 	// wiimote
 	vrpn_Button_Remote *m_vrpnButton;
-	// planovision width
-	float m_width;
-	// planovision height
-	float m_height;
-	float m_scaleScene;
-	float m_scale;
-	float m_speed;
 
+	float m_scale;
 	irr::core::matrix4 m_vehicle;
 	bool m_scalingUp;
 	bool m_scalingDown;
 	int m_activeDirection;
-	irr::core::vector3df m_headPosition;
+	float m_headPosition[3];
+
+	// swizzle
+	float m_swizzleSign[3];
+	int m_swizzleId[3];
 };
 
 #endif /* VRPN_MANAGER_H_ */

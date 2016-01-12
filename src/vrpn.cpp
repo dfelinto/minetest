@@ -30,6 +30,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 void VRPN_CALLBACK handle_button(void* userData, const vrpn_BUTTONCB b)
 {
 	std::cout << "Button '" << b.button << "': " << b.state << std::endl;
+
 	VRPNManager *vrpn = (VRPNManager *)userData;
 
 	switch (b.button) {
@@ -67,31 +68,75 @@ void VRPN_CALLBACK handle_tracker(void* userData, const vrpn_TRACKERCB t)
 {
 	std::cout << "Tracker '" << t.sensor << "' : " << t.pos[0] << "," <<  t.pos[1] << "," << t.pos[2] << std::endl;
 
-	// get raw data
-	// swizzle the data
-	// store head position
-	// update matrices
+	VRPNManager *vrpn = (VRPNManager *) userData;
+	vrpn->updatePosition(t.pos[0], t.pos[1], t.pos[2]);
 }
 
 VRPNManager::VRPNManager(
 ):
-	m_vrpnTracker(NULL),
-	m_vrpnButton(NULL),
 	m_width(0.0f),
 	m_height(0.0f),
-	m_scalingUp(false),
+    m_vrpnTracker(NULL),
+	m_vrpnButton(NULL),
+    m_scalingUp(false),
 	m_scalingDown(false),
 	m_activeDirection(0)
 {
-	m_headPosition = irr::core::vector3df(0.0f, 0.0f, 0.0f);
+	for (int i = 0; i < 3; i++) {
+		m_headPosition[i] = 0.0f;
+	}
+
 	m_scaleScene = g_settings->getFloat("planovision_scene_scale");
 	m_speed = g_settings->getFloat("planovision_movement_speed");
 
 	this->resetNavigation();
+	this->setupSwizzle();
 }
 
 VRPNManager::~VRPNManager()
 {
+}
+
+void convertSwizzle(std::string swizzle, float *sign, int *id)
+{
+	if (swizzle == "-X") {
+		*sign = -1.0f;
+		*id = 0;
+	}
+	else if (swizzle == "+X") {
+		*sign = 1.0f;
+		*id = 0;
+	}
+	else if (swizzle == "-Y") {
+		*sign = -1.0f;
+		*id = 1;
+	}
+	else if (swizzle == "+Y") {
+		*sign = 1.0f;
+		*id = 1;
+	}
+	else if (swizzle == "-Z") {
+		*sign = -1.0f;
+		*id = 2;
+	}
+	else if (swizzle == "+Z") {
+		*sign = 1.0f;
+		*id = 2;
+	}
+
+	else {
+		std::cout << "VRPN Error: swizzle value not valid: " << swizzle << std::endl;
+	}
+}
+
+void VRPNManager::setupSwizzle()
+{
+	convertSwizzle(g_settings->get("planovision_swizzle_x"),
+	               &m_swizzleSign[0], &m_swizzleId[0]);
+	convertSwizzle(g_settings->get("planovision_swizzle_y"),
+	               &m_swizzleSign[1], &m_swizzleId[1]);
+	convertSwizzle(g_settings->get("planovision_swizzle_z"),
+	               &m_swizzleSign[2], &m_swizzleId[2]);
 }
 
 int VRPNManager::setup()
@@ -105,12 +150,6 @@ int VRPNManager::setup()
 
 	std::string device_head = g_settings->get("planovision_vrpn_device_head");
 	std::string device_wii = g_settings->get("planovision_vrpn_device_wii");
-
-#if 0
-# planovision_swizzle_x enum -X, -Y-, -Z, +X, +Y, +Z
-# planovision_swizzle_y enum -X, -Y-, -Z, +X, +Y, +Z
-# planovision_swizzle_z enum -X, -Y-, -Z, +X, +Y, +Z
-#endif
 
 	m_vrpnTracker = new vrpn_Tracker_Remote(device_head.c_str());
 	m_vrpnButton = new vrpn_Button_Remote(device_wii.c_str());
@@ -171,7 +210,7 @@ void VRPNManager::updateVehicle()
 		}
 
 		// handle the transformation relative to the head position
-		irr::core::vector2df headPosition(m_headPosition.X, m_headPosition.Y);
+		irr::core::vector2df headPosition(m_headPosition[0], m_headPosition[1]);
 		headPosition.normalize();
 
 		float angle = headPosition.getAngleWith(irr::core::vector2df(0.0f, 1.0f));
@@ -180,5 +219,14 @@ void VRPNManager::updateVehicle()
 		irr::core::matrix4 translation;
 		translation.setTranslation(direction);
 		m_vehicle = translation * m_vehicle;
+	}
+}
+
+void VRPNManager::updatePosition(float x, float y, float z)
+{
+	float positionRaw[3] = {x, y, z};
+
+	for (int i = 0; i < 3; i++) {
+		m_headPosition[i] = m_swizzleSign[i] * positionRaw[m_swizzleId[i]];
 	}
 }
