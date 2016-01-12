@@ -466,6 +466,7 @@ planovision_vrpn_device_wii string WiiMote0@ariel
 planovision_swizzle_x enum -X, -Y-, -Z, +X, +Y, +Z
 planovision_swizzle_y enum -X, -Y-, -Z, +X, +Y, +Z
 planovision_swizzle_z enum -X, -Y-, -Z, +X, +Y, +Z
+scene_scale float 1.0
 
 #    In-game chat console background color (R,G,B).
 console_color (Console color) string (0,0,0)

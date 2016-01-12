@@ -83,6 +83,8 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("planovision_swizzle_x", "-X");
 	settings->setDefault("planovision_swizzle_y", "+Z");
 	settings->setDefault("planovision_swizzle_z", "+Y");
+	settings->setDefault("planovision_scene_scale", "1.0");
+	settings->setDefault("planovision_movement_speed", "0.01");
 
 	// Some (temporary) keys for debugging
 	settings->setDefault("keymap_print_debug_stacks", "KEY_KEY_P");

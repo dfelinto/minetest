@@ -22,7 +22,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "vrpn_Tracker.h"
 #include "vrpn_Button.h"
-#include "vrpn_Analog.h"
+#include "irr_v3d.h"
+#include "matrix4.h"
 
 class VRPNManager
 {
@@ -30,13 +31,42 @@ public:
 	VRPNManager();
 	~VRPNManager();
 
+	enum {
+		AD_FORWARD  = 1 << 0,
+		AD_BACKWARD = 1 << 1,
+		AD_LEFT     = 1 << 2,
+		AD_RIGHT    = 1 << 3,
+		AD_UP       = 1 << 4,
+		AD_DOWN     = 1 << 5,
+	};
+
 	// return true if initialization was correct
 	int setup();
 
 	// update VRPN callbacks
 	int loop();
 
+	// called from
+	void resetNavigation()
+	{
+		m_scale = m_scaleScene;
+		m_vehicle = irr::core::IdentityMatrix;
+	}
+
+	void setScalingDown(const bool value) {m_scalingDown = value;}
+	void setScalingUp(const bool value) {m_scalingDown = value;}
+	void setMovement(int direction, const bool value) {
+		if (value) {
+			m_activeDirection |= direction;
+		}
+		else {
+			m_activeDirection &= ~direction;
+		}
+	}
+
 private:
+	void updateVehicle();
+
 	// head tracker
 	vrpn_Tracker_Remote *m_vrpnTracker;
 	// wiimote
@@ -45,6 +75,15 @@ private:
 	float m_width;
 	// planovision height
 	float m_height;
+	float m_scaleScene;
+	float m_scale;
+	float m_speed;
+
+	irr::core::matrix4 m_vehicle;
+	bool m_scalingUp;
+	bool m_scalingDown;
+	int m_activeDirection;
+	irr::core::vector3df m_headPosition;
 };
 
 #endif /* VRPN_MANAGER_H_ */
