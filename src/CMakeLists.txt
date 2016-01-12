@@ -56,6 +56,14 @@ if(NOT USE_CURL)
 endif()
 
 
+option(ENABLE_VRPN "Enable VRPN support for head tracking" TRUE)
+set(USE_VRPN FALSE)
+
+if(ENABLE_VRPN)
+	message(STATUS "add VRPN library and include dir in the advanced options.")
+	mark_as_advanced(CLEAR VRPN_LIBRARY VRPN_INCLUDE_DIR)
+endif()
+
 option(ENABLE_GETTEXT "Use GetText for internationalization" FALSE)
 set(USE_GETTEXT FALSE)
 
@@ -535,6 +543,10 @@ if(USE_CURL)
 	include_directories(${CURL_INCLUDE_DIR})
 endif()
 
+if(USE_VRPN)
+	include_directories(${VRPN_INCLUDE_DIR})
+endif()
+
 
 set(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/bin")
 
@@ -575,6 +587,12 @@ if(BUILD_CLIENT)
 		target_link_libraries(
 			${PROJECT_NAME}
 			${CURL_LIBRARY}
+		)
+	endif()
+	if(USE_VRPN)
+		target_link_libraries(
+			${PROJECT_NAME}
+			${VRPN_LIBRARY}
 		)
 	endif()
 	if(USE_FREETYPE)
@@ -717,6 +735,9 @@ if(WIN32)
 	endif()
 	if(CURL_DLL)
 		install(FILES ${CURL_DLL} DESTINATION ${BINDIR})
+	endif()
+	if(VRPN_DLL)
+		install(FILES ${VRPN_DLL} DESTINATION ${BINDIR})
 	endif()
 	if(ZLIB_DLL)
 		install(FILES ${ZLIB_DLL} DESTINATION ${BINDIR})
