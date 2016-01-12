@@ -2121,6 +2121,9 @@ bool Game::createClient(const std::string &playername,
 	mapper = client->getMapper();
 	mapper->setMinimapMode(MINIMAP_MODE_OFF);
 
+	VRPNManager *vrpn = client->getVRPN();
+	vrpn->setup();
+
 	return true;
 }
 
