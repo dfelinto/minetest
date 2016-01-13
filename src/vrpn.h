@@ -66,6 +66,12 @@ public:
 
 	void updatePosition(float x, float y, float z);
 
+	void getHead(float *x, float *y, float *z);
+	void getVehicle(irr::core::matrix4& matrix);
+
+	float getWidth(){return m_width;}
+	float getHeight(){return m_height;}
+
 private:
 	void updateVehicle();
 	void setupSwizzle();

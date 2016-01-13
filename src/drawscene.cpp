@@ -72,7 +72,7 @@ void getProjectionFrustum(
 
 	matrix[8] = 0.0f;
 	matrix[9] = 0.0f;
-	matrix[10] = (far + near) / (far - near);
+	matrix[10] = - (far + near) / (far - near);
 	matrix[11] = -2.0f * far * near / (far - near);
 
 	matrix[12] = 0.0f;
@@ -83,40 +83,54 @@ void getProjectionFrustum(
 
 void calculate_planovision(
         paralax_sign psign,
+        Client& client,
         Camera& camera,
         const float halfInterocularDistance,
-        const float convergenceDistance,
         irr::core::matrix4& projectionMatrix,
-        v3f& eyePosition,
-        v3f& target,
-        irr::core::matrix4& movement
+        v3f& eyePosition
         )
 {
-	//TODO - to handle VRPN
-	// get position from vrpn
+	VRPNManager *vrpn = client.getVRPN();
+
+	float near, far, zed, scale;
+	float width, height;
+	float position[3];
+
+	v3f xy, Pv, Peye;
+
 	scene::ICameraSceneNode* cameraNode = camera.getCameraNode();
-	irr::core::matrix4 startMatrix = cameraNode->getAbsoluteTransformation();
 
-	movement.setTranslation(irr::core::vector3df((int) psign * halfInterocularDistance, 0.0f, 0.0f));
+	vrpn->getHead(&position[0], &position[1], &position[2]);
+	width = vrpn->getWidth();
+	height = vrpn->getHeight();
 
-	eyePosition = (startMatrix * movement).getTranslation();
-	target = eyePosition + camera.getDirection();
+	xy = v3f(position[0], position[1], 0.0f);
+	Pv = xy.crossProduct(v3f(0.0f, 0.0f, 1.0f));
+	Pv.normalize();
+	Pv *= halfInterocularDistance;
+	Peye = (psign == LEFT ? xy + Pv : xy - Pv);
 
-	float near, far, fov;
 	near = cameraNode->getNearValue();
 	far = cameraNode->getFarValue();
-	fov = cameraNode->getFOV();
+	zed = position[2];
+	scale = (zed == 0.f ? 0.0f : near / zed);
 
-	float left, right, bottom, top, offset;
-	float aspectRatio = cameraNode->getAspectRatio();
+	// projection matrix
+	float left, right, bottom, top;
 
-	top = near * tan(fov * 0.5f);
-	bottom = -top;
-	right = aspectRatio * top;
-	left = -right;
+	top =    ( height * 0.5f - Peye.Y) * scale;
+	bottom = (-height * 0.5f - Peye.Y) * scale;
+	right =  ( width * 0.5f  - Peye.X) * scale;
+	left =   (-width * 0.5f  - Peye.X) * scale;
 
-	offset = (int) -psign * halfInterocularDistance * near / convergenceDistance;
-	getProjectionFrustum(left + offset, right + offset, bottom, top, near, far, projectionMatrix);
+	getProjectionFrustum(left, right, bottom, top, near, far, projectionMatrix);
+
+	// modelview matrix
+	irr::core::matrix4 vehicle, translation;
+	translation.setTranslation(v3f(Peye.X, Peye.Y, zed));
+
+	vrpn->getVehicle(vehicle);
+	eyePosition = (vehicle * translation).getTranslation();
 }
 
 void draw_anaglyph_3d_mode(Camera& camera, bool show_hud, Hud& hud,
@@ -563,77 +577,49 @@ void draw_planovision_mode(Camera& camera, bool show_hud,
 	/* preserve old setup*/
 	irr::core::vector3df oldPosition = cameraNode->getPosition();
 	irr::core::vector3df oldTarget   = cameraNode->getTarget();
+	bool oldBind = cameraNode->getTargetAndRotationBinding();
 
 	float halfInterocularDistance = g_settings->getFloat("3d_paralax_strength");
-	float convergenceDistance = g_settings->getFloat("3d_convergence_distance");
 
 	irr::core::matrix4 projectionMatrix, movement;
 	v3f eyePosition, target;
 
+	cameraNode->bindTargetAndRotation(false);
+
 	//Left eye...
 	driver->setRenderTarget(irr::video::ERT_STEREO_LEFT_BUFFER);
 	calculate_planovision(LEFT,
+	                      client,
 	                      camera,
 	                      halfInterocularDistance,
-	                      convergenceDistance,
 	                      projectionMatrix,
-	                      eyePosition,
-	                      target,
-	                      movement);
+	                      eyePosition);
 
 	//clear the depth buffer, and color
 	driver->beginScene(true, true, irr::video::SColor(200, 200, 200, 255));
 	cameraNode->setPosition(eyePosition);
-	cameraNode->setTarget(target);
 	driver->setTransform(video::ETS_PROJECTION, projectionMatrix);
 	smgr->drawAll();
-	driver->setTransform(video::ETS_WORLD, core::IdentityMatrix);
 
-	if (show_hud) {
-		draw_selectionbox(driver, hud, hilightboxes, show_hud);
-
-		if (draw_wield_tool)
-			camera.drawWieldedTool(&movement);
-
-		hud.drawHotbar(client.getPlayerItem());
-		hud.drawLuaElements(camera.getOffset());
-	}
-
-	guienv->drawAll();
 
 	//Right eye...
 	driver->setRenderTarget(irr::video::ERT_STEREO_RIGHT_BUFFER);
 	calculate_planovision(RIGHT,
+	                      client,
 	                      camera,
 	                      halfInterocularDistance,
-	                      convergenceDistance,
 	                      projectionMatrix,
-	                      eyePosition,
-	                      target,
-	                      movement);
+	                      eyePosition);
 
 	//clear the depth buffer, and color
 	driver->beginScene(true, true, irr::video::SColor(200, 200, 200, 255));
 	cameraNode->setPosition(eyePosition);
-	cameraNode->setTarget(target);
 	driver->setTransform(video::ETS_PROJECTION, projectionMatrix);
 	smgr->drawAll();
-	driver->setTransform(video::ETS_WORLD, core::IdentityMatrix);
-
-	if (show_hud) {
-		draw_selectionbox(driver, hud, hilightboxes, show_hud);
-
-		if (draw_wield_tool)
-			camera.drawWieldedTool(&movement);
-
-		hud.drawHotbar(client.getPlayerItem());
-		hud.drawLuaElements(camera.getOffset());
-	}
-
-	guienv->drawAll();
 
 	cameraNode->setPosition(oldPosition);
 	cameraNode->setTarget(oldTarget);
+	cameraNode->bindTargetAndRotation(oldBind);
 }
 
 void draw_plain(Camera& camera, bool show_hud, Hud& hud,

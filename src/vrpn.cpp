@@ -230,3 +230,17 @@ void VRPNManager::updatePosition(float x, float y, float z)
 		m_headPosition[i] = m_swizzleSign[i] * positionRaw[m_swizzleId[i]];
 	}
 }
+
+void VRPNManager::getHead(float *x, float *y, float *z)
+{
+	*x = m_headPosition[0];
+	*y = m_headPosition[1];
+	*z = m_headPosition[2];
+}
+
+void VRPNManager::getVehicle(core::matrix4& matrix)
+{
+	for (int i = 0; i < 3; i++) {
+		matrix[i] = m_vehicle[i];
+	}
+}
