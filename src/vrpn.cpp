@@ -50,10 +50,10 @@ void VRPN_CALLBACK handle_button(void* userData, const vrpn_BUTTONCB b)
 			vrpn->setMovement(VRPNManager::AD_RIGHT, b.state == 1);
 			break;
 		case 9: // down
-			vrpn->setMovement(VRPNManager::AD_DOWN, b.state == 1);
+			vrpn->setMovement(VRPNManager::AD_BACKWARD, b.state == 1);
 			break;
 		case 10: // up
-			vrpn->setMovement(VRPNManager::AD_UP, b.state == 1);
+			vrpn->setMovement(VRPNManager::AD_FORWARD, b.state == 1);
 			break;
 		case 1: // One
 		case 2: // Two
