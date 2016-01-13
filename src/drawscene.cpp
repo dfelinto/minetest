@@ -130,7 +130,7 @@ void calculate_planovision(
 	translation.setTranslation(v3f(Peye.X, Peye.Y, zed));
 
 	vrpn->getVehicle(vehicle);
-	eyePosition = (vehicle * translation).getTranslation();
+	eyePosition = (vehicle * translation * vrpn->getScale()).getTranslation();
 }
 
 void draw_anaglyph_3d_mode(Camera& camera, bool show_hud, Hud& hud,

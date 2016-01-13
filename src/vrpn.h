@@ -71,6 +71,7 @@ public:
 
 	float getWidth(){return m_width;}
 	float getHeight(){return m_height;}
+	float getScale(){return m_scale;}
 
 private:
 	void updateVehicle();
