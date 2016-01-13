@@ -154,7 +154,7 @@ int VRPNManager::setup()
 	m_vrpnTracker = new vrpn_Tracker_Remote(device_head.c_str());
 	m_vrpnButton = new vrpn_Button_Remote(device_wii.c_str());
 
-	m_vrpnTracker->register_change_handler(0, handle_tracker);
+	m_vrpnTracker->register_change_handler((void *)this, handle_tracker);
 	m_vrpnButton->register_change_handler((void *)this, handle_button);
 
 	return 1;
