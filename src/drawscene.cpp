@@ -575,8 +575,9 @@ void draw_planovision_mode(Camera& camera, bool show_hud,
 	scene::ICameraSceneNode *cameraNode = camera.getCameraNode();
 
 	/* preserve old setup*/
-	irr::core::vector3df oldPosition = cameraNode->getPosition();
-	irr::core::vector3df oldTarget   = cameraNode->getTarget();
+	v3f oldPosition = cameraNode->getPosition();
+	v3f oldRotation = cameraNode->getRotation();
+	v3f oldTarget   = cameraNode->getTarget();
 	bool oldBind = cameraNode->getTargetAndRotationBinding();
 
 	float halfInterocularDistance = g_settings->getFloat("3d_paralax_strength");
@@ -618,6 +619,7 @@ void draw_planovision_mode(Camera& camera, bool show_hud,
 	smgr->drawAll();
 
 	cameraNode->setPosition(oldPosition);
+	cameraNode->setRotation(oldRotation);
 	cameraNode->setTarget(oldTarget);
 	cameraNode->bindTargetAndRotation(oldBind);
 }
