@@ -54,7 +54,7 @@ public:
 	}
 
 	void setScalingDown(const bool value) {m_scalingDown = value;}
-	void setScalingUp(const bool value) {m_scalingDown = value;}
+	void setScalingUp(const bool value) {m_scalingUp = value;}
 	void setMovement(int direction, const bool value) {
 		if (value) {
 			m_activeDirection |= direction;
