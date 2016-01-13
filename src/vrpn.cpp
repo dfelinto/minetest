@@ -175,6 +175,18 @@ int VRPNManager::loop()
 	return 1;
 }
 
+//! Constant for 64bit PI.
+const f64 PI64		= 3.1415926535897932384626433832795028841971693993751;
+
+//! 64bit constant for converting from radians to degrees
+const f64 RADTODEG64 = 180.0 / PI64;
+
+float angleSigned(irr::core::vector2df v1, irr::core::vector2df v2)
+{
+	const float perp_dot = (v1.Y * v2.X) - (v1.X * v2.Y);
+	return atan2(perp_dot, v1.dotProduct(v2)) * RADTODEG64;
+}
+
 void VRPNManager::updateVehicle()
 {
 	if (m_scalingUp) {
@@ -213,7 +225,7 @@ void VRPNManager::updateVehicle()
 		irr::core::vector2df headPosition(m_headPosition[0], m_headPosition[1]);
 		headPosition.normalize();
 
-		float angle = headPosition.getAngleWith(irr::core::vector2df(0.0f, 1.0f));
+		float angle = angleSigned(headPosition, irr::core::vector2df(0.0f, 1.0f));
 		direction.rotateXYBy(angle);
 
 		irr::core::matrix4 translation;
