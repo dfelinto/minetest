@@ -240,7 +240,7 @@ void VRPNManager::getHead(float *x, float *y, float *z)
 
 void VRPNManager::getVehicle(core::matrix4& matrix)
 {
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 16; i++) {
 		matrix[i] = m_vehicle[i];
 	}
 }
