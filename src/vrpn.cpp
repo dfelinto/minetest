@@ -29,7 +29,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 void VRPN_CALLBACK handle_button(void* userData, const vrpn_BUTTONCB b)
 {
-	std::cout << "Button '" << b.button << "': " << b.state << std::endl;
+	// std::cout << "Button '" << b.button << "': " << b.state << std::endl;
 
 	VRPNManager *vrpn = (VRPNManager *)userData;
 
@@ -70,7 +70,7 @@ void VRPN_CALLBACK handle_button(void* userData, const vrpn_BUTTONCB b)
 
 void VRPN_CALLBACK handle_tracker(void* userData, const vrpn_TRACKERCB t)
 {
-	std::cout << "Tracker '" << t.sensor << "' : " << t.pos[0] << "," <<  t.pos[1] << "," << t.pos[2] << std::endl;
+	// std::cout << "Tracker '" << t.sensor << "' : " << t.pos[0] << "," <<  t.pos[1] << "," << t.pos[2] << std::endl;
 
 	VRPNManager *vrpn = (VRPNManager *) userData;
 	vrpn->updatePosition(t.pos[0], t.pos[1], t.pos[2]);
