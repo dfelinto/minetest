@@ -91,7 +91,7 @@ VRPNManager::VRPNManager(
 	}
 
 	m_scaleScene = g_settings->getFloat("planovision_scene_scale");
-	m_speed = g_settings->getFloat("planovision_movement_speed");
+	m_speed = g_settings->getFloat("planovision_movement_speed") / m_scaleScene;
 
 	this->resetNavigation();
 	this->setupSwizzle();
