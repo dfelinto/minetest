@@ -3093,6 +3093,8 @@ void Game::updateCameraOrientation(CameraOrientation *cam,
 		const VolatileRunFlags &flags)
 {
 	if (g_settings->get("3d_mode") == "planovision") {
+		cam->camera_yaw   = 0.0f;
+		cam->camera_pitch = 0.0f;
 		return;
 	}
 #ifdef HAVE_TOUCHSCREENGUI
