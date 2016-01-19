@@ -86,6 +86,8 @@ void calculate_planovision(
         Client& client,
         Camera& camera,
         const float halfInterocularDistance,
+        const float floorLevel,
+        v2f& origin,
         irr::core::matrix4& projectionMatrix,
         v3f& eyePosition
         )
@@ -97,6 +99,7 @@ void calculate_planovision(
 	float position[3];
 
 	v3f xy, Pv, Peye;
+	v3f xyz;
 
 	scene::ICameraSceneNode* cameraNode = camera.getCameraNode();
 
@@ -113,7 +116,7 @@ void calculate_planovision(
 	near = cameraNode->getNearValue();
 	far = cameraNode->getFarValue();
 	zed = position[2];
-	scale = (zed == 0.f ? 0.0f : near / zed);
+	scale = (zed == 0.0f ? 0.0f : near / zed);
 
 	// projection matrix
 	float left, right, bottom, top;
@@ -126,11 +129,11 @@ void calculate_planovision(
 	getProjectionFrustum(left, right, bottom, top, near, far, projectionMatrix);
 
 	// modelview matrix
-	irr::core::matrix4 vehicle, translation;
-	translation.setTranslation(v3f(Peye.X, Peye.Y, zed));
-
+	irr::core::matrix4 vehicle;
 	vrpn->getVehicle(vehicle);
-	eyePosition = (vehicle * translation * vrpn->getScale()).getTranslation();
+
+	xyz = (vehicle.getTranslation() + v3f(Peye.X, Peye.Y, zed)) * vrpn->getScale();
+	eyePosition = v3f(origin.X + xyz.X, floorLevel + xyz.Z, origin.Y + xyz.Y);
 }
 
 void draw_anaglyph_3d_mode(Camera& camera, bool show_hud, Hud& hud,
@@ -576,16 +579,21 @@ void draw_planovision_mode(Camera& camera, bool show_hud,
 
 	/* preserve old setup*/
 	v3f oldPosition = cameraNode->getPosition();
-	v3f oldRotation = cameraNode->getRotation();
 	v3f oldTarget   = cameraNode->getTarget();
 	bool oldBind = cameraNode->getTargetAndRotationBinding();
+	v3f oldUpVector = cameraNode->getUpVector();
 
 	float halfInterocularDistance = g_settings->getFloat("3d_paralax_strength");
+	float floorLevel = g_settings->getFloat("planovision_floor_level");
+	v2f origin = v2f(g_settings->getFloat("planovision_origin_x"), g_settings->getFloat("planovision_origin_y"));
 
-	irr::core::matrix4 projectionMatrix, movement;
-	v3f eyePosition, target;
+	irr::core::matrix4 projectionMatrix;
+	v3f eyePosition;
+	irr::core::matrix4 oldProjectionMatrix;
 
-	cameraNode->bindTargetAndRotation(false);
+	oldProjectionMatrix = cameraNode->getProjectionMatrix();
+
+	cameraNode->bindTargetAndRotation(true);
 
 	//Left eye...
 	driver->setRenderTarget(irr::video::ERT_STEREO_LEFT_BUFFER);
@@ -593,15 +601,20 @@ void draw_planovision_mode(Camera& camera, bool show_hud,
 	                      client,
 	                      camera,
 	                      halfInterocularDistance,
+	                      floorLevel,
+	                      origin,
 	                      projectionMatrix,
 	                      eyePosition);
 
 	//clear the depth buffer, and color
 	driver->beginScene(true, true, irr::video::SColor(200, 200, 200, 255));
-	cameraNode->setPosition(eyePosition);
-	driver->setTransform(video::ETS_PROJECTION, projectionMatrix);
-	smgr->drawAll();
 
+	cameraNode->setPosition(eyePosition);
+	cameraNode->setTarget(eyePosition + v3f(0.0f, -1.0f, 0.0f));
+	cameraNode->setUpVector(v3f(0.0f, 0.0f, 1.0f));
+	cameraNode->setProjectionMatrix(projectionMatrix);
+	driver->setTransform(video::ETS_WORLD, irr::core::IdentityMatrix);
+	smgr->drawAll();
 
 	//Right eye...
 	driver->setRenderTarget(irr::video::ERT_STEREO_RIGHT_BUFFER);
@@ -609,19 +622,24 @@ void draw_planovision_mode(Camera& camera, bool show_hud,
 	                      client,
 	                      camera,
 	                      halfInterocularDistance,
+	                      floorLevel,
+	                      origin,
 	                      projectionMatrix,
 	                      eyePosition);
 
 	//clear the depth buffer, and color
 	driver->beginScene(true, true, irr::video::SColor(200, 200, 200, 255));
 	cameraNode->setPosition(eyePosition);
-	driver->setTransform(video::ETS_PROJECTION, projectionMatrix);
+	cameraNode->setTarget(eyePosition + v3f(0.0f, -1.0f, 0.0f));
+	cameraNode->setUpVector(v3f(0.0f, 0.0f, 1.0f));
+	cameraNode->setProjectionMatrix(projectionMatrix);
+	driver->setTransform(video::ETS_WORLD, irr::core::IdentityMatrix);
 	smgr->drawAll();
 
 	cameraNode->setPosition(oldPosition);
-	cameraNode->setRotation(oldRotation);
 	cameraNode->setTarget(oldTarget);
 	cameraNode->bindTargetAndRotation(oldBind);
+	cameraNode->setUpVector(oldUpVector);
 }
 
 void draw_plain(Camera& camera, bool show_hud, Hud& hud,
