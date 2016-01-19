@@ -533,6 +533,9 @@
 # planovision_swizzle_z enum -X, -Y-, -Z, +X, +Y, +Z
 # planovision_scene_scale float 1.0
 # planovision_movement_speed float 0.01
+# planovision_floor_level float 30.0
+# planovision_origin_x float 0.0
+# planovision_origin_y float 0.0
 
 #    In-game chat console background color (R,G,B).
 #    type: string
