@@ -453,9 +453,17 @@ void draw_pageflip_3d_mode(Camera& camera, bool show_hud,
 	camera.getCameraNode()->setTarget(oldTarget);
 }
 
-void draw_plain(Camera &camera, bool show_hud, Hud &hud,
-		video::IVideoDriver *driver, bool draw_wield_tool,
-		Client &client, gui::IGUIEnvironment *guienv)
+void draw_hmd_3d_mode(Camera& camera, bool show_hud,
+		Hud& hud, std::vector<aabb3f> hilightboxes, video::IVideoDriver* driver,
+		scene::ISceneManager* smgr, const v2u32& screensize,
+		bool draw_wield_tool, Client& client, gui::IGUIEnvironment* guienv,
+		video::SColor skycolor)
+{
+}
+
+void draw_plain(Camera& camera, bool show_hud, Hud& hud,
+		video::IVideoDriver* driver, bool draw_wield_tool,
+		Client& client, gui::IGUIEnvironment* guienv)
 {
 	driver->setTransform(video::ETS_WORLD, core::IdentityMatrix);
 	if (show_hud) {
@@ -521,6 +529,11 @@ void draw_scene(video::IVideoDriver *driver, scene::ISceneManager *smgr,
 		draw_pageflip_3d_mode(camera, show_hud, hud, driver,
 				smgr, screensize, draw_wield_tool, client, guienv, skycolor);
 		draw_crosshair = false;
+	}
+	else if (draw_mode == "hmd")
+	{
+		draw_hmd_3d_mode(camera, show_hud, hud, hilightboxes, driver,
+			smgr, screensize, draw_wield_tool, client, guienv, skycolor);
 		show_hud = false;
 	}
 	else {
