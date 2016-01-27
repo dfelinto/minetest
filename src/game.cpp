@@ -41,6 +41,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "guiKeyChangeMenu.h"
 #include "guiPasswordChange.h"
 #include "guiVolumeChange.h"
+#include "hmd_bridge.h"
 #include "hud.h"
 #include "mainmenumanager.h"
 #include "mapblock.h"
@@ -2225,6 +2226,9 @@ bool Game::createClient(const std::string &playername,
 	mapper = client->getMapper();
 	mapper->setMinimapMode(MINIMAP_MODE_OFF);
 
+	HMDManager *hmd = client->getHMD();
+	hmd->setup();
+
 	return true;
 }
 
@@ -4054,6 +4058,9 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats,
 		const CameraOrientation &cam)
 {
 	LocalPlayer *player = client->getEnv().getLocalPlayer();
+	HMDManager *hmd = client->getHMD();
+
+	hmd->loop();
 
 	/*
 		Fog range

@@ -35,6 +35,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "hud.h"
 #include "particles.h"
 #include "network/networkpacket.h"
+#include "hmd_bridge.h"
 
 struct MeshMakeData;
 class MapBlockMesh;
@@ -424,6 +425,9 @@ public:
 	ClientEnvironment& getEnv()
 	{ return m_env; }
 
+	HMDManager *getHMD()
+	{ return m_hmd; }
+
 	// Causes urgent mesh updates (unlike Map::add/removeNodeWithEvent)
 	void removeNode(v3s16 p);
 	void addNode(v3s16 p, MapNode n, bool remove_metadata = true);
@@ -688,6 +692,8 @@ private:
 	bool m_cache_smooth_lighting;
 	bool m_cache_enable_shaders;
 	bool m_cache_use_tangent_vertices;
+
+	HMDManager *m_hmd;
 
 	DISABLE_CLASS_COPY(Client);
 };

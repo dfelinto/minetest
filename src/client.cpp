@@ -52,6 +52,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "database-sqlite3.h"
 #include "serialization.h"
 #include "guiscalingfilter.h"
+#include "hmd_bridge.h"
 
 extern gui::IGUIEnvironment* guienv;
 
@@ -254,7 +255,8 @@ Client::Client(
 	m_recommended_send_interval(0.1),
 	m_removed_sounds_check_timer(0),
 	m_state(LC_Created),
-	m_localdb(NULL)
+	m_localdb(NULL),
+	m_hmd(new HMDManager())
 {
 	// Add local player
 	m_env.addPlayer(new LocalPlayer(this, playername));

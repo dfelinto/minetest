@@ -56,6 +56,19 @@ if(NOT USE_CURL)
 endif()
 
 
+option(ENABLE_HMD "Enable Head Mounted Display support" TRUE)
+set(HMD_LIBRARY ""
+		CACHE FILEPATH "HMD library file")
+set(HMD_INCLUDE_DIR ""
+		CACHE PATH "HMD include dir")
+
+if(ENABLE_HMD)
+	message(STATUS "add HMD library and include dir in the advanced options.")
+	set(USE_HMD TRUE)
+else()
+	set(USE_HMD FALSE)
+endif()
+
 option(ENABLE_GETTEXT "Use GetText for internationalization" FALSE)
 set(USE_GETTEXT FALSE)
 
@@ -530,6 +543,7 @@ set(client_SRCS
 	particles.cpp
 	shader.cpp
 	sky.cpp
+	hmd_bridge.cpp
 	wieldmesh.cpp
 	${client_SCRIPT_SRCS}
 )
@@ -565,6 +579,10 @@ endif()
 
 if(USE_CURL)
 	include_directories(${CURL_INCLUDE_DIR})
+endif()
+
+if(USE_HMD)
+	include_directories(${HMD_INCLUDE_DIR})
 endif()
 
 
@@ -607,6 +625,12 @@ if(BUILD_CLIENT)
 		target_link_libraries(
 			${PROJECT_NAME}
 			${CURL_LIBRARY}
+		)
+	endif()
+	if(USE_HMD)
+		target_link_libraries(
+			${PROJECT_NAME}
+			${HMD_LIBRARY}
 		)
 	endif()
 	if(USE_FREETYPE)
@@ -755,6 +779,9 @@ if(WIN32)
 	endif()
 	if(CURL_DLL)
 		install(FILES ${CURL_DLL} DESTINATION ${BINDIR})
+	endif()
+	if(HMD_DLL)
+		install(FILES ${HMD_DLL} DESTINATION ${BINDIR})
 	endif()
 	if(ZLIB_DLL)
 		install(FILES ${ZLIB_DLL} DESTINATION ${BINDIR})
