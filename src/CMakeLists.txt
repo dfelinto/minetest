@@ -55,14 +55,11 @@ if(NOT USE_CURL)
 	endif()
 endif()
 
-
 option(ENABLE_VRPN "Enable VRPN support for head tracking" TRUE)
 set(VRPN_LIBRARY ""
 		CACHE FILEPATH "VRPN library file")
 set(VRPN_INCLUDE_DIR ""
 		CACHE PATH "VRPN include dir")
-
-set(USE_CURL FALSE)
 
 if(ENABLE_VRPN)
 	message(STATUS "add VRPN library and include dir in the advanced options.")
