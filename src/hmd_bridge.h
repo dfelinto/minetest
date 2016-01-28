@@ -20,6 +20,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef HMD_MANAGER_H_
 #define HMD_MANAGER_H_
 
+#include "HMD.h"
+
 class HMDManager
 {
 public:
@@ -27,29 +29,28 @@ public:
 	~HMDManager();
 
 	enum {
-		LEFT = 0,
-		RIGHT = 1,
+		HMD_LEFT = 0,
+		HMD_RIGHT = 1,
 	};
-
-	void loop();
-	void setup();
 
 	int getWidth(int eye){return m_width[eye];}
 	int getHeight(int eye){return m_height[eye];}
 
+	bool init();
+	bool loop();
+	bool frameReady();
+	bool reCenter();
+
 private:
+	bool setup();
+
+	unsigned int m_colorTexture[2];
+	float m_orientationRaw[2][4];
+	float m_positionRaw[2][3];
 	int m_width[2];
 	int m_height[2];
 	int m_frame;
-
-#if 0
-	hmd
-	desc
-	eyerenderdesc[2]
-	hmdtoeyeviewoffset[2]
-	eyerendertexture
-	fbo
-#endif
+	HMD *m_hmd;
 };
 
 #endif /* HMD_MANAGER_H_ */

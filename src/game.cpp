@@ -2227,7 +2227,7 @@ bool Game::createClient(const std::string &playername,
 	mapper->setMinimapMode(MINIMAP_MODE_OFF);
 
 	HMDManager *hmd = client->getHMD();
-	hmd->setup();
+	hmd->init();
 
 	return true;
 }

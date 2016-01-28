@@ -21,28 +21,126 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "hmd_bridge.h"
 
+#include "HMD.h"
+#include "Oculus.h"
+
 #include <iostream>
+
+#define TODO false
 
 HMDManager::HMDManager(
 ):
+	m_hmd(NULL),
 	m_frame(0)
 {
-	m_width[0] = 1920;
-	m_width[1] = 1920;
-	m_height[0] = 1080;
-	m_height[1] = 1080;
+	m_width[0] = -1;
+	m_width[1] = -1;
+	m_height[0] = -1;
+	m_height[1] = -1;
+
+	std::string displayBackend = g_settings->get("hmd_bridge_display_backend");
+
+	if (displayBackend == "oculus") {
+		m_hmd = new Oculus();
+	}
+	else if (displayBackend == "oculus_legacy") {
+		std::cout << "HMD Error: Display backend not supported via DLL (" << displayBackend << ")" << std::endl;
+	}
+	else {
+		std::cout << "HMD Error: Display backend not supported (" << displayBackend << ")" << std::endl;
+	}
 }
+
+#if 0
+//TODO
+EXPORT_LIB void Oculus_projectionMatrixLeft(Oculus *oculus, const float nearz, const float farz, float *r_matrix) { oculus->getProjectionMatrixLeft(nearz, farz, r_matrix); }
+EXPORT_LIB void Oculus_projectionMatrixRight(Oculus *oculus, const float nearz, const float farz, float *r_matrix) { oculus->getProjectionMatrixRight(nearz, farz, r_matrix); }
+#endif
 
 HMDManager::~HMDManager()
 {
+	if (m_hmd) {
+		delete m_hmd;
+	}
 }
 
-void HMDManager::setup()
+bool HMDManager::setup()
 {
-	std::cout << "HMD::setup(): " << m_width << " x " << m_height << std::endl;
+	assert(m_hmd != NULL);
+
+	if (m_hmd->setup(m_colorTexture[HMD_LEFT], m_colorTexture[HMD_RIGHT])) {
+		return true;
+	}
+	else {
+		std::cout << "HMD Bridge: ERROR : HMD failed to initialize textures ("
+		    << m_colorTexture[HMD_LEFT] << ", " << m_colorTexture[HMD_RIGHT] << ")" << std::endl;
+
+		delete m_hmd;
+		m_hmd = NULL;
+		return false;
+	}
 }
 
-void HMDManager::loop()
+bool HMDManager::init()
 {
-	std::cout << "HMD::loop()" << std::endl;
+	if (m_hmd == NULL) {
+		return false;
+	}
+
+	m_width[HMD_LEFT] = m_hmd->getWidthLeft();
+	m_height[HMD_LEFT] = m_hmd->getHeightLeft();
+	m_width[HMD_RIGHT] = m_hmd->getWidthRight();
+	m_height[HMD_RIGHT] = m_hmd->getHeightRight();
+
+	//TODO: initialize video::ITexture and get m_colorTexture from it
+
+	return this->setup();
+}
+
+bool HMDManager::frameReady()
+{
+	if (m_hmd == NULL) {
+		return false;
+	}
+
+	if (m_hmd->frameReady()) {
+		return true;
+	}
+	else {
+		std::cout << "HMD Bridge: ERROR : HMD failed to process frame ready" << std::endl;
+		return false;
+	}
+}
+
+bool HMDManager::reCenter()
+{
+	if (m_hmd == NULL) {
+		return false;
+	}
+
+	if (m_hmd->reCenter()) {
+		std::cout << "HMD Bridge: HMD re-centered" << std::endl;
+		return true;
+	}
+	else {
+		std::cout << "HMD Bridge: ERROR : HMD failed to re-center" << std::endl;
+		return false;
+	}
+}
+
+/**
+* Get fresh tracking data
+*/
+bool HMDManager::loop()
+{
+	if (m_hmd == NULL) {
+		return false;
+	}
+
+	m_hmd->update(m_orientationRaw[HMD_LEFT], m_positionRaw[HMD_LEFT], m_orientationRaw[HMD_RIGHT], m_positionRaw[HMD_RIGHT]);
+#if 0
+	updateViewClipping()
+	updateMatrices()
+#endif
+	return TODO;
 }
