@@ -61,9 +61,11 @@ set(HMD_LIBRARY ""
 		CACHE FILEPATH "HMD library file")
 set(HMD_INCLUDE_DIR ""
 		CACHE PATH "HMD include dir")
+set(OCULUS_SDK_INCLUDE_DIR ""
+		CACHE PATH "Oculus SDK include dir")
 
 if(ENABLE_HMD)
-	message(STATUS "add HMD library and include dir in the advanced options.")
+	message(STATUS "add Oculus SDK, HMD library and include dir in the advanced options.")
 	set(USE_HMD TRUE)
 else()
 	set(USE_HMD FALSE)
@@ -324,6 +326,9 @@ if(WIN32)
 		set(VORBIS_DLL "" CACHE FILEPATH "Path to libvorbis.dll for installation (optional)")
 		set(VORBISFILE_DLL "" CACHE FILEPATH "Path to libvorbisfile.dll for installation (optional)")
 	endif()
+	if(USE_HMD)
+		set(HMD_DLL "" CACHE FILEPATH "Path to BridgeLib.dll for installation (optional)")
+	endif()
 else()
 	# Unix probably
 	if(BUILD_CLIENT)
@@ -583,6 +588,9 @@ endif()
 
 if(USE_HMD)
 	include_directories(${HMD_INCLUDE_DIR})
+	include_directories(${HMD_INCLUDE_DIR}/../glew/include)
+	include_directories(${OCULUS_SDK_INCLUDE_DIR}/LibOVR/Include)
+	include_directories(${OCULUS_SDK_INCLUDE_DIR}/LibOVRKernel/Src)
 endif()
 
 
