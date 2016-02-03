@@ -20,9 +20,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef HMD_MANAGER_H_
 #define HMD_MANAGER_H_
 
-#include "HMD.h"
 #include "ITexture.h"
 #include "IVideoDriver.h"
+#include "HMD.h"
+#include "quaternion.h"
 
 class HMDManager
 {
@@ -39,7 +40,11 @@ public:
 
 	v2u32 getScreenSize(int eye){ return m_screenSize[eye]; }
 	bool getPreview(){ return m_preview; }
-	void togglePreview(){ m_preview = !m_preview; }
+	void togglePreview();
+
+	void getProjectionMatrix(int eye, float nearz, float farz, irr::core::matrix4& matrix);
+	void getPosition(int eye, irr::core::vector3df& position);
+	void getOrientation(int eye, core::quaternion& orientation);
 
 	bool init(video::IVideoDriver *driver);
 	bool loop();
@@ -48,9 +53,11 @@ public:
 
 private:
 	bool setup();
+	void updateProjectionMatrix(const float nearz, const float farz);
 
 	video::IVideoDriver *m_driver;
 	video::ITexture* m_image[2];
+
 	unsigned int m_colorTexture[2];
 	float m_orientationRaw[2][4];
 	float m_positionRaw[2][3];
@@ -58,6 +65,9 @@ private:
 	bool m_preview;
 	int m_frame;
 	HMD *m_hmd;
+	float m_nearz;
+	float m_farz;
+	irr::core::matrix4 m_projectionMatrix[2];
 };
 
 #endif /* HMD_MANAGER_H_ */

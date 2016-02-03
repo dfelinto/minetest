@@ -23,16 +23,17 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "HMD.h"
 #include "Oculus.h"
+#include "..\source\Irrlicht\COpenGLTexture.h"
 
 #include <iostream>
-
-#define TODO false
 
 HMDManager::HMDManager(
 ):
 	m_driver(NULL),
 	m_frame(0),
-	m_hmd(NULL)
+	m_hmd(NULL),
+	m_nearz(-1),
+	m_farz(-1)
 {
 	m_screenSize[0].X = -1;
 	m_screenSize[1].Y = -1;
@@ -57,12 +58,6 @@ HMDManager::HMDManager(
 
 	m_preview = g_settings->getBool("hmd_preview");
 }
-
-#if 0
-//TODO
-EXPORT_LIB void Oculus_projectionMatrixLeft(Oculus *oculus, const float nearz, const float farz, float *r_matrix) { oculus->getProjectionMatrixLeft(nearz, farz, r_matrix); }
-EXPORT_LIB void Oculus_projectionMatrixRight(Oculus *oculus, const float nearz, const float farz, float *r_matrix) { oculus->getProjectionMatrixRight(nearz, farz, r_matrix); }
-#endif
 
 HMDManager::~HMDManager()
 {
@@ -119,7 +114,9 @@ bool HMDManager::init(
 		m_screenSize[HMD_RIGHT], "HMD_right",
 		irr::video::ECF_R8G8B8);
 
-	//TODO: get m_colorTexture from the m_images
+	static_cast<const video::COpenGLTexture* > (m_image[HMD_LEFT]);
+	//m_colorTexture[HMD_LEFT] = static_cast<const video::COpenGLTexture*>(m_image[HMD_LEFT])->getOpenGLTextureName();
+	//m_colorTexture[HMD_RIGHT] = static_cast<const video::COpenGLTexture*>(m_image[HMD_RIGHT])->getOpenGLTextureName();
 
 	return this->setup();
 }
@@ -137,6 +134,10 @@ bool HMDManager::frameReady()
 		std::cout << "HMD Bridge: ERROR : HMD failed to process frame ready" << std::endl;
 		return false;
 	}
+}
+
+void HMDManager::togglePreview(){
+	m_preview = !m_preview;
 }
 
 bool HMDManager::reCenter()
@@ -164,10 +165,41 @@ bool HMDManager::loop()
 		return false;
 	}
 
-	m_hmd->update(m_orientationRaw[HMD_LEFT], m_positionRaw[HMD_LEFT], m_orientationRaw[HMD_RIGHT], m_positionRaw[HMD_RIGHT]);
-#if 0
-	updateViewClipping()
-	updateMatrices()
-#endif
-	return TODO;
+	return m_hmd->update(m_orientationRaw[HMD_LEFT], m_positionRaw[HMD_LEFT], m_orientationRaw[HMD_RIGHT], m_positionRaw[HMD_RIGHT]);
+}
+
+void HMDManager::getPosition(int eye, irr::core::vector3df& position)
+{
+	position.X = m_positionRaw[eye][0];
+	position.Y = m_positionRaw[eye][1];
+	position.Z = m_positionRaw[eye][2];
+}
+
+void HMDManager::getOrientation(int eye, core::quaternion& orientation)
+{
+	orientation.W = m_orientationRaw[eye][0];
+	orientation.X = m_orientationRaw[eye][1];
+	orientation.Y = m_orientationRaw[eye][2];
+	orientation.Z = m_orientationRaw[eye][3];
+}
+
+void HMDManager::getProjectionMatrix(int eye, const float nearz, const float farz, irr::core::matrix4& matrix)
+{
+	if ((nearz != m_nearz) || (farz != m_farz)) {
+		updateProjectionMatrix(nearz, farz);
+	}
+	matrix = m_projectionMatrix[eye];
+}
+
+void HMDManager::updateProjectionMatrix(const float nearz, const float farz)
+{
+	float matrixRaw[2][16];
+
+	m_hmd->getProjectionMatrixLeft(nearz, farz, false, matrixRaw[0]);
+	m_hmd->getProjectionMatrixRight(nearz, farz, false, matrixRaw[1]);
+
+	for (int i = 0; i < 16; i++) {
+		m_projectionMatrix[HMD_LEFT][i] = matrixRaw[HMD_LEFT][i];
+		m_projectionMatrix[HMD_RIGHT][i] = matrixRaw[HMD_RIGHT][i];
+	}
 }
