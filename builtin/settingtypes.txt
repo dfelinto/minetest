@@ -468,7 +468,21 @@ fall_bobbing_amount (Fall bobbing) float 0.0
 #    -    topbottom: split screen top/bottom.
 #    -    sidebyside: split screen side by side.
 #    -    pageflip: quadbuffer based 3d.
-3d_mode (3D mode) enum none none,anaglyph,interlaced,topbottom,sidebyside,pageflip
+#    -    hmd: head mounted display.
+3d_mode (3D mode) enum none none,anaglyph,interlaced,topbottom,sidebyside,pageflip,hmd
+
+#    HMD display backend
+#    Currently supported by the HMD library"
+#    -    oculus: Oculus Rift 0.7 runtime
+#    -    legacy: Oculus Rift 0.5 runtime
+#    -    debug: Oculus Rift DK1 debug mode
+hmd_display_backend (HMD display backend) enum oculus oculus,legacy,debug
+
+#   Whether to display the HMD content in the screen.
+hmd_preview (HMD preview) bool false
+
+#    Key for toggling the display of HMD preview.
+keymap_toggle_hmd_preview (HMD preview toggle key) key KEY_F4
 
 #    In-game chat console background color (R,G,B).
 console_color (Console color) string (0,0,0)

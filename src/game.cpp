@@ -1378,6 +1378,7 @@ void KeyCache::populate()
 	key[KeyType::QUICKTUNE_INC]  = getKeySetting("keymap_quicktune_inc");
 	key[KeyType::QUICKTUNE_DEC]  = getKeySetting("keymap_quicktune_dec");
 
+	key[KEYMAP_ID_TOGGLE_HMD_PREVIEW] = getKeySetting("keymap_toggle_hmd_preview");
 	key[KeyType::DEBUG_STACKS]   = getKeySetting("keymap_print_debug_stacks");
 
 	if (handler) {
@@ -2227,7 +2228,7 @@ bool Game::createClient(const std::string &playername,
 	mapper->setMinimapMode(MINIMAP_MODE_OFF);
 
 	HMDManager *hmd = client->getHMD();
-	hmd->init();
+	hmd->init(driver);
 
 	return true;
 }
@@ -2800,6 +2801,8 @@ void Game::processKeyInput(VolatileRunFlags *flags,
 		quicktune->inc();
 	} else if (wasKeyDown(KeyType::QUICKTUNE_DEC)) {
 		quicktune->dec();
+	} else if (wasKeyDown(KeyType::TOGGLE_HMD_PREVIEW)) {
+		client->getHMD()->togglePreview();
 	} else if (wasKeyDown(KeyType::DEBUG_STACKS)) {
 		// Print debug stacks
 		dstream << "-----------------------------------------"

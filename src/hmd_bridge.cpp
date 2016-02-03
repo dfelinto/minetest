@@ -30,25 +30,32 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 HMDManager::HMDManager(
 ):
-	m_hmd(NULL),
-	m_frame(0)
+	m_driver(NULL),
+	m_frame(0),
+	m_hmd(NULL)
 {
-	m_width[0] = -1;
-	m_width[1] = -1;
-	m_height[0] = -1;
-	m_height[1] = -1;
+	m_screenSize[0].X = -1;
+	m_screenSize[1].Y = -1;
+	m_screenSize[0].X = -1;
+	m_screenSize[1].Y = -1;
+	m_image[0] = NULL;
+	m_image[1] = NULL;
 
-	std::string displayBackend = g_settings->get("hmd_bridge_display_backend");
+	std::string displayBackend = g_settings->get("hmd_display_backend");
 
 	if (displayBackend == "oculus") {
 		m_hmd = new Oculus();
 	}
 	else if (displayBackend == "oculus_legacy") {
 		std::cout << "HMD Error: Display backend not supported via DLL (" << displayBackend << ")" << std::endl;
+		return;
 	}
 	else {
 		std::cout << "HMD Error: Display backend not supported (" << displayBackend << ")" << std::endl;
+		return;
 	}
+
+	m_preview = g_settings->getBool("hmd_preview");
 }
 
 #if 0
@@ -61,6 +68,14 @@ HMDManager::~HMDManager()
 {
 	if (m_hmd) {
 		delete m_hmd;
+	}
+
+	if (m_image[0]) {
+		m_driver->removeTexture(m_image[0]);
+	}
+
+	if (m_image[1]) {
+		m_driver->removeTexture(m_image[1]);
 	}
 }
 
@@ -81,18 +96,30 @@ bool HMDManager::setup()
 	}
 }
 
-bool HMDManager::init()
+bool HMDManager::init(
+	video::IVideoDriver *driver
+	)
 {
 	if (m_hmd == NULL) {
 		return false;
 	}
 
-	m_width[HMD_LEFT] = m_hmd->getWidthLeft();
-	m_height[HMD_LEFT] = m_hmd->getHeightLeft();
-	m_width[HMD_RIGHT] = m_hmd->getWidthRight();
-	m_height[HMD_RIGHT] = m_hmd->getHeightRight();
+	m_screenSize[HMD_LEFT].X = m_hmd->getWidthLeft();
+	m_screenSize[HMD_LEFT].Y = m_hmd->getHeightLeft();
+	m_screenSize[HMD_RIGHT].X = m_hmd->getWidthRight();
+	m_screenSize[HMD_RIGHT].Y = m_hmd->getHeightRight();
 
-	//TODO: initialize video::ITexture and get m_colorTexture from it
+	m_driver = driver;
+
+	m_image[HMD_LEFT] = driver->addRenderTargetTexture(
+		m_screenSize[HMD_LEFT], "HMD_left",
+		irr::video::ECF_R8G8B8);
+
+	m_image[HMD_RIGHT] = driver->addRenderTargetTexture(
+		m_screenSize[HMD_RIGHT], "HMD_right",
+		irr::video::ECF_R8G8B8);
+
+	//TODO: get m_colorTexture from the m_images
 
 	return this->setup();
 }

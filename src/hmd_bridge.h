@@ -21,6 +21,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define HMD_MANAGER_H_
 
 #include "HMD.h"
+#include "ITexture.h"
+#include "IVideoDriver.h"
 
 class HMDManager
 {
@@ -28,15 +30,18 @@ public:
 	HMDManager();
 	~HMDManager();
 
-	enum {
+	enum eye {
 		HMD_LEFT = 0,
 		HMD_RIGHT = 1,
 	};
 
-	int getWidth(int eye){return m_width[eye];}
-	int getHeight(int eye){return m_height[eye];}
+	video::ITexture *getImage(int eye){ return m_image[eye];}
 
-	bool init();
+	v2u32 getScreenSize(int eye){ return m_screenSize[eye]; }
+	bool getPreview(){ return m_preview; }
+	void togglePreview(){ m_preview = !m_preview; }
+
+	bool init(video::IVideoDriver *driver);
 	bool loop();
 	bool frameReady();
 	bool reCenter();
@@ -44,11 +49,13 @@ public:
 private:
 	bool setup();
 
+	video::IVideoDriver *m_driver;
+	video::ITexture* m_image[2];
 	unsigned int m_colorTexture[2];
 	float m_orientationRaw[2][4];
 	float m_positionRaw[2][3];
-	int m_width[2];
-	int m_height[2];
+	v2u32 m_screenSize[2];
+	bool m_preview;
 	int m_frame;
 	HMD *m_hmd;
 };

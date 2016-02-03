@@ -122,6 +122,55 @@ void init_texture(video::IVideoDriver* driver, const v2u32& screensize,
 			irr::video::ECF_A8R8G8B8);
 }
 
+static void draw_image(
+	video::ITexture* image,
+	const v2u32& screensize,
+	paralax_sign psign,
+	const irr::core::matrix4& startMatrix,
+	const irr::core::vector3df& focusPoint, bool show_hud,
+	video::IVideoDriver* driver, Camera& camera, scene::ISceneManager* smgr,
+	Hud& hud, std::vector<aabb3f>& hilightboxes,
+	bool draw_wield_tool, Client& client, gui::IGUIEnvironment* guienv,
+	video::SColor skycolor)
+{
+	static v2u32 last_screensize = v2u32(0, 0);
+
+
+	driver->setRenderTarget(image, true, true,
+		irr::video::SColor(255,
+		skycolor.getRed(), skycolor.getGreen(), skycolor.getBlue()));
+
+	irr::core::vector3df eye_pos;
+	irr::core::matrix4 movement;
+	movement.setTranslation(
+		irr::core::vector3df((int)psign *
+		g_settings->getFloat("3d_paralax_strength"), 0.0f, 0.0f));
+	eye_pos = (startMatrix * movement).getTranslation();
+
+	//clear the depth buffer
+	driver->clearZBuffer();
+	camera.getCameraNode()->setPosition(eye_pos);
+	camera.getCameraNode()->setTarget(focusPoint);
+	smgr->drawAll();
+
+	driver->setTransform(video::ETS_WORLD, core::IdentityMatrix);
+
+	if (show_hud)
+	{
+		draw_selectionbox(driver, hud, hilightboxes, show_hud);
+
+		if (draw_wield_tool)
+			camera.drawWieldedTool(&movement);
+	}
+
+	guienv->drawAll();
+
+	/* switch back to real renderer */
+	driver->setRenderTarget(0, true, true,
+		irr::video::SColor(0,
+		skycolor.getRed(), skycolor.getGreen(), skycolor.getBlue()));
+}
+
 video::ITexture* draw_image(const v2u32 &screensize,
 		paralax_sign psign, const irr::core::matrix4 &startMatrix,
 		const irr::core::vector3df &focusPoint, bool show_hud,
@@ -459,6 +508,66 @@ void draw_hmd_3d_mode(Camera& camera, bool show_hud,
 		bool draw_wield_tool, Client& client, gui::IGUIEnvironment* guienv,
 		video::SColor skycolor)
 {
+	/* save current info */
+	irr::core::vector3df oldPosition = camera.getCameraNode()->getPosition();
+	irr::core::vector3df oldTarget = camera.getCameraNode()->getTarget();
+	irr::core::matrix4 startMatrix =
+		camera.getCameraNode()->getAbsoluteTransformation();
+	irr::core::vector3df focusPoint = (camera.getCameraNode()->getTarget()
+		- camera.getCameraNode()->getAbsolutePosition()).setLength(1)
+		+ camera.getCameraNode()->getAbsolutePosition();
+
+	/* HMD */
+	HMDManager *hmd = client.getHMD();
+	video::ITexture* image[2];
+	image[0] = hmd->getImage(0);
+	image[1] = hmd->getImage(1);
+
+	/* create left view */
+	draw_image(
+		image[0],
+		hmd->getScreenSize(0),
+		LEFT, startMatrix,
+		focusPoint, show_hud, driver, camera, smgr, hud, hilightboxes,
+		draw_wield_tool, client, guienv, skycolor);
+
+	/* create right view */
+	draw_image(
+		image[1],
+		hmd->getScreenSize(1),
+		RIGHT, startMatrix,
+		focusPoint, show_hud, driver, camera, smgr, hud, hilightboxes,
+		draw_wield_tool, client, guienv, skycolor);
+
+	if (hmd->getPreview()) {
+
+		/* create hud overlay */
+		video::ITexture* hudtexture = draw_hud(driver, screensize, show_hud, hud, client,
+			false, skycolor, guienv, camera);
+		driver->makeColorKeyTexture(hudtexture, irr::video::SColor(255, 0, 0, 0));
+		//makeColorKeyTexture mirrors texture so we do it twice to get it right again
+		driver->makeColorKeyTexture(hudtexture, irr::video::SColor(255, 0, 0, 0));
+
+		draw2DImageFilterScaled(driver, image[0],
+			irr::core::rect<s32>(0, 0, screensize.X / 2, screensize.Y),
+			irr::core::rect<s32>(0, 0, screensize.X, screensize.Y), 0, 0, false);
+
+		draw2DImageFilterScaled(driver, hudtexture,
+			irr::core::rect<s32>(0, 0, screensize.X / 2, screensize.Y),
+			irr::core::rect<s32>(0, 0, screensize.X, screensize.Y), 0, 0, true);
+
+		draw2DImageFilterScaled(driver, image[1],
+			irr::core::rect<s32>(screensize.X / 2, 0, screensize.X, screensize.Y),
+			irr::core::rect<s32>(0, 0, screensize.X, screensize.Y), 0, 0, false);
+
+		draw2DImageFilterScaled(driver, hudtexture,
+			irr::core::rect<s32>(screensize.X / 2, 0, screensize.X, screensize.Y),
+			irr::core::rect<s32>(0, 0, screensize.X, screensize.Y), 0, 0, true);
+	}
+
+	/* cleanup */
+	camera.getCameraNode()->setPosition(oldPosition);
+	camera.getCameraNode()->setTarget(oldTarget);
 }
 
 void draw_plain(Camera& camera, bool show_hud, Hud& hud,

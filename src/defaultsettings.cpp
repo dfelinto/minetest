@@ -75,6 +75,10 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("directional_colored_fog", "true");
 	settings->setDefault("tooltip_show_delay", "400");
 
+	settings->setDefault("hmd_display_backend", "oculus");
+	settings->setDefault("hmd_preview", "false");
+	settings->setDefault("keymap_toggle_hmd_preview", "KEY_F4");
+
 	// Some (temporary) keys for debugging
 	settings->setDefault("keymap_print_debug_stacks", "KEY_KEY_P");
 	settings->setDefault("keymap_quicktune_prev", "KEY_HOME");
