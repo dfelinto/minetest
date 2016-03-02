@@ -23,9 +23,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "HMD.h"
 #include "Oculus.h"
-#include "..\source\Irrlicht\COpenGLTexture.h"
 
 #include <iostream>
+
+#pragma comment(lib, "Irrlicht.lib")
 
 HMDManager::HMDManager(
 ):
@@ -115,9 +116,9 @@ bool HMDManager::init(
 		m_screenSize[HMD_RIGHT], "HMD_right",
 		irr::video::ECF_R8G8B8);
 
-	static_cast<const video::COpenGLTexture* > (m_image[HMD_LEFT]);
-	//m_colorTexture[HMD_LEFT] = static_cast<const video::COpenGLTexture*>(m_image[HMD_LEFT])->getOpenGLTextureName();
-	//m_colorTexture[HMD_RIGHT] = static_cast<const video::COpenGLTexture*>(m_image[HMD_RIGHT])->getOpenGLTextureName();
+	/* note: the following code requires a patched irrlicht */
+	m_colorTexture[HMD_LEFT] = m_image[HMD_LEFT]->getTextureName();
+	m_colorTexture[HMD_RIGHT] = m_image[HMD_RIGHT]->getTextureName();
 
 	return this->setup();
 }
