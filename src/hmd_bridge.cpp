@@ -79,6 +79,7 @@ bool HMDManager::setup()
 	assert(m_hmd != NULL);
 
 	if (m_hmd->setup(m_colorTexture[HMD_LEFT], m_colorTexture[HMD_RIGHT])) {
+		m_hmd->setScale(10.f);
 		return true;
 	}
 	else {
