@@ -197,8 +197,8 @@ void HMDManager::updateProjectionMatrix(const float nearz, const float farz)
 {
 	float matrixRaw[2][16];
 
-	m_hmd->getProjectionMatrixLeft(nearz, farz, false, matrixRaw[0]);
-	m_hmd->getProjectionMatrixRight(nearz, farz, false, matrixRaw[1]);
+	m_hmd->getProjectionMatrixLeft(nearz, farz, false, false, matrixRaw[0]);
+	m_hmd->getProjectionMatrixRight(nearz, farz, false, false, matrixRaw[1]);
 
 	for (int i = 0; i < 16; i++) {
 		m_projectionMatrix[HMD_LEFT][i] = matrixRaw[HMD_LEFT][i];
