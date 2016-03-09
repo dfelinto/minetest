@@ -1957,13 +1957,23 @@ void Game::run()
 			cam_smoothing = 1 - g_settings->getFloat("cinematic_camera_smoothing");
 		else
 			cam_smoothing = 1 - g_settings->getFloat("camera_smoothing");
-		cam_smoothing = rangelim(cam_smoothing, 0.01f, 1.0f);
-		cam_view.camera_yaw += (cam_view_target.camera_yaw -
-				cam_view.camera_yaw) * cam_smoothing;
-		cam_view.camera_pitch += (cam_view_target.camera_pitch -
-				cam_view.camera_pitch) * cam_smoothing;
-		cam_view.camera_roll += (cam_view_target.camera_roll -
-				cam_view.camera_roll) * cam_smoothing;
+
+		/* no smoothing when using hmd */
+		if (g_settings->get("3d_mode") != "hmd") {
+			cam_smoothing = rangelim(cam_smoothing, 0.01f, 1.0f);
+			cam_view.camera_yaw += (cam_view_target.camera_yaw -
+					cam_view.camera_yaw) * cam_smoothing;
+			cam_view.camera_pitch += (cam_view_target.camera_pitch -
+					cam_view.camera_pitch) * cam_smoothing;
+			cam_view.camera_roll += (cam_view_target.camera_roll -
+					cam_view.camera_roll) * cam_smoothing;
+		}
+		else {
+			cam_view.camera_yaw = cam_view_target.camera_yaw;
+			cam_view.camera_pitch = cam_view_target.camera_pitch;
+			cam_view.camera_roll = cam_view_target.camera_roll;
+		}
+
 		updatePlayerControl(cam_view);
 		step(&dtime);
 		processClientEvents(&cam_view_target, &runData.damage_flash);
@@ -3228,6 +3238,12 @@ void Game::updateCameraDirection(CameraOrientation *cam,
 void Game::updateCameraOrientation(CameraOrientation *cam,
 		const VolatileRunFlags &flags, float dtime)
 {
+	if (g_settings->get("3d_mode") == "hmd") {
+		HMDManager *hmd = client->getHMD();
+		hmd->getEuler(&cam->camera_yaw, &cam->camera_pitch, &cam->camera_roll);
+		return;
+	}
+
 #ifdef HAVE_TOUCHSCREENGUI
 	if (g_touchscreengui) {
 		cam->camera_yaw   = g_touchscreengui->getYaw();

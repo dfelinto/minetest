@@ -45,6 +45,7 @@ public:
 	void getProjectionMatrix(int eye, float nearz, float farz, irr::core::matrix4& matrix);
 	void getPosition(int eye, irr::core::vector3df& position);
 	void getOrientation(int eye, core::quaternion& orientation);
+	void getEuler(float *r_yaw, float *r_pitch, float *r_roll);
 
 	bool init(video::IVideoDriver *driver);
 	bool loop();

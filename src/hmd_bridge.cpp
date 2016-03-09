@@ -185,6 +185,20 @@ void HMDManager::getOrientation(int eye, core::quaternion& orientation)
 	orientation.Z = m_orientationRaw[eye][3];
 }
 
+void HMDManager::getEuler(float *r_yaw, float *r_pitch, float *r_roll)
+{
+	core::vector3df euler;
+	core::quaternion orientation;
+
+	/* at least for Oculus, both eyes have the same orientation */
+	this->getOrientation(HMD_LEFT, orientation);
+	orientation.toEuler(euler);
+
+	*r_yaw = RadToDegree(euler.Y);
+	*r_pitch = -RadToDegree(euler.X);
+	*r_roll = RadToDegree(euler.Z);
+}
+
 void HMDManager::getProjectionMatrix(int eye, const float nearz, const float farz, irr::core::matrix4& matrix)
 {
 	if ((nearz != m_nearz) || (farz != m_farz)) {
