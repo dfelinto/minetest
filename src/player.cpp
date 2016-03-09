@@ -53,6 +53,7 @@ Player::Player(IGameDef *gamedef, const char *name):
 	m_breath(PLAYER_MAX_BREATH),
 	m_pitch(0),
 	m_yaw(0),
+	m_roll(0),
 	m_speed(0,0,0),
 	m_position(0,0,0),
 	m_collisionbox(-BS*0.30,0.0,-BS*0.30,BS*0.30,BS*1.75,BS*0.30),
@@ -126,6 +127,7 @@ void Player::serialize(std::ostream &os)
 	//args.set("password", m_password);
 	args.setFloat("pitch", m_pitch);
 	args.setFloat("yaw", m_yaw);
+	args.setFloat("roll", m_roll);
 	args.setV3F("position", m_position);
 	args.setS32("hp", hp);
 	args.setS32("breath", m_breath);
@@ -152,6 +154,7 @@ void Player::deSerialize(std::istream &is, std::string playername)
 	strlcpy(m_name, name.c_str(), PLAYERNAME_SIZE);
 	setPitch(args.getFloat("pitch"));
 	setYaw(args.getFloat("yaw"));
+	setRoll(args.getFloat("roll"));
 	setPosition(args.getV3F("position"));
 	try{
 		hp = args.getS32("hp");

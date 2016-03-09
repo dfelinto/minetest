@@ -1880,17 +1880,19 @@ void Server::SendMovePlayer(u16 peer_id)
 	Player *player = m_env->getPlayer(peer_id);
 	assert(player);
 
-	NetworkPacket pkt(TOCLIENT_MOVE_PLAYER, sizeof(v3f) + sizeof(f32) * 2, peer_id);
-	pkt << player->getPosition() << player->getPitch() << player->getYaw();
+	NetworkPacket pkt(TOCLIENT_MOVE_PLAYER, sizeof(v3f) + sizeof(f32) * 3, peer_id);
+	pkt << player->getPosition() << player->getPitch() << player->getYaw() << player->getRoll();
 
 	{
 		v3f pos = player->getPosition();
 		f32 pitch = player->getPitch();
 		f32 yaw = player->getYaw();
+		f32 roll = player->getRoll();
 		verbosestream << "Server: Sending TOCLIENT_MOVE_PLAYER"
 				<< " pos=(" << pos.X << "," << pos.Y << "," << pos.Z << ")"
 				<< " pitch=" << pitch
 				<< " yaw=" << yaw
+				<< " roll=" << roll
 				<< std::endl;
 	}
 

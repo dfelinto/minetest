@@ -163,6 +163,7 @@ struct ClientEvent
 		struct{
 			f32 pitch;
 			f32 yaw;
+			f32 roll;
 		} player_force_move;
 		struct{
 			bool set_camera_point_target;

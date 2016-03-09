@@ -96,10 +96,11 @@ do
 	local f_speed_z = ProtoField.int32("minetest.client.playerpos_speed_z", "Speed Z", base.DEC)
 	local f_pitch = ProtoField.int32("minetest.client.playerpos_pitch", "Pitch", base.DEC)
 	local f_yaw = ProtoField.int32("minetest.client.playerpos_yaw", "Yaw", base.DEC)
+	local f_roll = ProtoField.int32("minetest.client.playerpos_roll", "Roll", base.DEC)
 
 	minetest_client_commands[0x23] = {
 		"PLAYERPOS", 34,
-		{ f_x, f_y, f_z, f_speed_x, f_speed_y, f_speed_z, f_pitch, f_yaw },
+		{ f_x, f_y, f_z, f_speed_x, f_speed_y, f_speed_z, f_pitch, f_yaw, f_roll},
 		function(buffer, pinfo, tree, t)
 			t:add(f_x, buffer(2,4))
 			t:add(f_y, buffer(6,4))
@@ -109,6 +110,7 @@ do
 			t:add(f_speed_z, buffer(22,4))
 			t:add(f_pitch, buffer(26,4))
 			t:add(f_yaw, buffer(30,4))
+			t:add(f_roll, buffer(34,4))
 		end
 	}
 end
@@ -598,13 +600,14 @@ do
 	local f_speed_z = ProtoField.int32("minetest.server.objectdata_player_speed_z", "Speed Z", base.DEC)
 	local f_pitch = ProtoField.int32("minetest.server.objectdata_player_pitch", "Pitch", base.DEC)
 	local f_yaw = ProtoField.int32("minetest.server.objectdata_player_yaw", "Yaw", base.DEC)
+	local f_roll = ProtoField.int32("minetest.server.objectdata_player_roll", "Roll", base.DEC)
 	local f_block_count = ProtoField.uint16("minetest.server.objectdata_block_count",
 		"Count of blocks", base.DEC)
 
 	minetest_server_commands[0x28] = {
 		"OBJECTDATA", 6,
 		{ f_player_count, f_player, f_peer_id, f_x, f_y, f_z,
-		  f_speed_x, f_speed_y, f_speed_z,f_pitch, f_yaw,
+		  f_speed_x, f_speed_y, f_speed_z,f_pitch, f_yaw, f_roll
 		  f_block_count },
 		function(buffer, pinfo, tree, t)
 			local t2, index, pos
@@ -631,6 +634,7 @@ do
 				t2:add(f_speed_z, buffer(pos + 22, 4))
 				t2:add(f_pitch, buffer(pos + 26, 4))
 				t2:add(f_yaw, buffer(pos + 30, 4))
+				t2:add(f_roll, buffer(pos + 34, 4))
 			end
 
 			local block_count = buffer(block_count_pos, 2):uint()
@@ -844,11 +848,12 @@ do
 	local f_z = ProtoField.int32("minetest.server.move_player_z", "Position Z", base.DEC)
 	local f_pitch = ProtoField.int32("minetest.server.move_player_pitch", "Pitch", base.DEC)
 	local f_yaw = ProtoField.int32("minetest.server.move_player_yaw", "Yaw", base.DEC)
+	local f_roll = ProtoField.int32("minetest.server.move_player_roll", "Roll", base.DEC)
 	local f_garbage = ProtoField.bytes("minetest.server.move_player_garbage", "Garbage")
 
 	minetest_server_commands[0x34] = {
-		"MOVE_PLAYER", 18,  -- actually 22, but see below
-		{ f_x, f_y, f_z, f_pitch, f_yaw, f_garbage },
+		"MOVE_PLAYER", 18,  -- actually 24, but see below
+		{ f_x, f_y, f_z, f_pitch, f_yaw, f_roll, f_garbage },
 		function(buffer, pinfo, tree, t)
 			t:add(f_x, buffer(2, 4))
 			t:add(f_y, buffer(6, 4))
@@ -859,9 +864,10 @@ do
 			-- caused the server to serialize the pitch and yaw
 			-- with 2 bytes each instead of 4, creating a
 			-- malformed message.
-			if buffer:len() >= 22 then
+			if buffer:len() >= 24 then
 				t:add(f_pitch, buffer(14, 4))
 				t:add(f_yaw, buffer(18, 4))
+				t:add(f_roll, buffer(22, 4))
 			else
 				t:add(f_garbage, buffer(14, 4))
 				t:add_expert_info(PI_MALFORMED, PI_WARN, "Malformed pitch and yaw, possibly caused by a serialization bug in Minetest")

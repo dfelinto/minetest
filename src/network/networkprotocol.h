@@ -231,6 +231,7 @@ enum ToClientCommand
 		[N+2+12] v3s32 speed*100
 		[N+2+12+12] s32 pitch*100
 		[N+2+12+12+4] s32 yaw*100
+		[N+2+12+12+4+4] s32 roll*100
 	*/
 
 	TOCLIENT_PLAYERINFO = 0x24, // Obsolete
@@ -268,6 +269,7 @@ enum ToClientCommand
 			v3s32 speed*100
 			s32 pitch*100
 			s32 yaw*100
+			s32 roll*100
 		u16 count of blocks
 		for each block:
 			v3s16 blockpos
@@ -324,6 +326,7 @@ enum ToClientCommand
 		v3f1000 player position
 		f1000 player pitch
 		f1000 player yaw
+		f1000 player roll
 	*/
 
 	TOCLIENT_ACCESS_DENIED_LEGACY = 0x35,
@@ -648,7 +651,8 @@ enum ToServerCommand
 		[2+12] v3s32 speed*100
 		[2+12+12] s32 pitch*100
 		[2+12+12+4] s32 yaw*100
-		[2+12+12+4+4] u32 keyPressed
+		[2+12+12+4+4] s32 roll*100
+		[2+12+12+4+4+4] u32 keyPressed
 	*/
 
 	TOSERVER_GOTBLOCKS = 0x24,

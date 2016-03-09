@@ -481,7 +481,7 @@ void Sky::render()
 
 void Sky::update(float time_of_day, float time_brightness,
 		float direct_brightness, bool sunlight_seen,
-		CameraMode cam_mode, float yaw, float pitch)
+		CameraMode cam_mode, float yaw, float pitch, float roll)
 {
 	// Stabilize initial brightness and color values by flooding updates
 	if (m_first_update) {
@@ -492,7 +492,7 @@ void Sky::update(float time_of_day, float time_brightness,
 		m_first_update = false;
 		for (u32 i = 0; i < 100; i++) {
 			update(time_of_day, time_brightness, direct_brightness,
-				sunlight_seen, cam_mode, yaw, pitch);
+				sunlight_seen, cam_mode, yaw, pitch, roll);
 		}
 		return;
 	}
@@ -614,6 +614,7 @@ void Sky::update(float time_of_day, float time_brightness,
 			// Combine the colors when looking up or down, otherwise turning looks weird
 			pointcolor_blend += (0.5 - pointcolor_blend) *
 				(1 - MYMIN((90 - std::fabs(pitch)) / 90 * 1.5, 1));
+			// TODO handle roll
 			// Invert direction to match where the sun and moon are rising
 			if (m_time_of_day > 0.5)
 				pointcolor_blend = 1 - pointcolor_blend;

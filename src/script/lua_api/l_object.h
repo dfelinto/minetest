@@ -209,6 +209,9 @@ private:
 	// set_look_horizontal(self, radians)
 	static int l_set_look_horizontal(lua_State *L);
 
+	// get_look_roll(self)
+	static int l_get_look_roll(lua_State *L);
+
 	// DEPRECATED
 	// set_look_pitch(self, radians)
 	static int l_set_look_pitch(lua_State *L);
@@ -216,6 +219,9 @@ private:
 	// DEPRECATED
 	// set_look_yaw(self, radians)
 	static int l_set_look_yaw(lua_State *L);
+
+	// set_look_roll(self, radians)
+	static int l_set_look_roll(lua_State *L);
 
 	// set_breath(self, breath)
 	static int l_set_breath(lua_State *L);

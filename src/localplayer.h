@@ -59,6 +59,7 @@ public:
 	v3f last_speed;
 	float last_pitch;
 	float last_yaw;
+	float last_roll;
 	unsigned int last_keyPressed;
 
 	float camera_impact;

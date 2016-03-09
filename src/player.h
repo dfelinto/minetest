@@ -46,8 +46,7 @@ struct PlayerControl
 		RMB = false;
 		pitch = 0;
 		yaw = 0;
-		sidew_move_joystick_axis = .0f;
-		forw_move_joystick_axis = .0f;
+		roll = 0;
 	}
 	PlayerControl(
 		bool a_up,
@@ -61,8 +60,7 @@ struct PlayerControl
 		bool a_RMB,
 		float a_pitch,
 		float a_yaw,
-		float a_sidew_move_joystick_axis,
-		float a_forw_move_joystick_axis
+		float a_roll
 	)
 	{
 		up = a_up;
@@ -76,6 +74,7 @@ struct PlayerControl
 		RMB = a_RMB;
 		pitch = a_pitch;
 		yaw = a_yaw;
+		roll = a_roll;
 		sidew_move_joystick_axis = a_sidew_move_joystick_axis;
 		forw_move_joystick_axis = a_forw_move_joystick_axis;
 	}
@@ -90,6 +89,7 @@ struct PlayerControl
 	bool RMB;
 	float pitch;
 	float yaw;
+	float roll;
 	float sidew_move_joystick_axis;
 	float forw_move_joystick_axis;
 };
@@ -166,6 +166,13 @@ public:
 		m_yaw = yaw;
 	}
 
+	virtual void setRoll(f32 roll)
+	{
+		if (roll != m_roll)
+			m_dirty = true;
+		m_roll = roll;
+	}
+
 	f32 getPitch()
 	{
 		return m_pitch;
@@ -174,6 +181,11 @@ public:
 	f32 getYaw()
 	{
 		return m_yaw;
+	}
+
+	f32 getRoll()
+	{
+		return m_roll;
 	}
 
 	u16 getBreath()
@@ -208,6 +220,11 @@ public:
 	f32 getRadYaw()
 	{
 		return m_yaw * core::DEGTORAD;
+	}
+
+	f32 getRadRoll()
+	{
+		return m_roll * core::DEGTORAD;
 	}
 
 	const char *getName() const
@@ -414,6 +431,7 @@ protected:
 	u16 m_breath;
 	f32 m_pitch;
 	f32 m_yaw;
+	f32 m_roll;
 	v3f m_speed;
 	v3f m_position;
 	aabb3f m_collisionbox;

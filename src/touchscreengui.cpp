@@ -416,6 +416,7 @@ TouchScreenGUI::TouchScreenGUI(IrrlichtDevice *device, IEventReceiver* receiver)
 	m_guienv(device->getGUIEnvironment()),
 	m_camera_yaw(0.0),
 	m_camera_pitch(0.0),
+	m_camera_roll(0.0),
 	m_visible(false),
 	m_move_id(-1),
 	m_receiver(receiver),

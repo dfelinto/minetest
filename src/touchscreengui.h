@@ -149,6 +149,7 @@ public:
 
 	double getYaw() { return m_camera_yaw; }
 	double getPitch() { return m_camera_pitch; }
+	double getRoll() { return m_camera_roll; }
 	line3d<f32> getShootline() { return m_shootline; }
 
 	void step(float dtime);
@@ -172,6 +173,7 @@ private:
 	/* value in degree */
 	double                  m_camera_yaw;
 	double                  m_camera_pitch;
+	double                  m_camera_roll;
 
 	line3d<f32>             m_shootline;
 

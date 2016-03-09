@@ -113,6 +113,7 @@ Example content (added indentation):
   position = (-5231.97,15,1961.41)
   version = 1
   yaw = 101.37
+  roll = 0.0
   PlayerArgsEnd
   List main 32
   Item default:torch 13

@@ -780,18 +780,20 @@ void Server::handleCommand_PlayerPos(NetworkPacket* pkt)
 		return;
 
 	v3s32 ps, ss;
-	s32 f32pitch, f32yaw;
+	s32 f32pitch, f32yaw, f32roll;
 
 	*pkt >> ps;
 	*pkt >> ss;
 	*pkt >> f32pitch;
 	*pkt >> f32yaw;
+	*pkt >> f32roll;
 
 	f32 pitch = (f32)f32pitch / 100.0;
 	f32 yaw = (f32)f32yaw / 100.0;
+	f32 roll = (f32)f32roll / 100.0;
 	u32 keyPressed = 0;
 
-	if (pkt->getSize() >= 12 + 12 + 4 + 4 + 4)
+	if (pkt->getSize() >= 12 + 12 + 4 + 4 + 4 + 4)
 		*pkt >> keyPressed;
 
 	v3f position((f32)ps.X / 100.0, (f32)ps.Y / 100.0, (f32)ps.Z / 100.0);
@@ -799,6 +801,7 @@ void Server::handleCommand_PlayerPos(NetworkPacket* pkt)
 
 	pitch = modulo360f(pitch);
 	yaw = modulo360f(yaw);
+	roll = modulo360f(roll);
 
 	Player *player = m_env->getPlayer(pkt->getPeerId());
 	if (player == NULL) {
@@ -829,6 +832,7 @@ void Server::handleCommand_PlayerPos(NetworkPacket* pkt)
 	player->setSpeed(speed);
 	player->setPitch(pitch);
 	player->setYaw(yaw);
+	player->setRoll(roll);
 	player->keyPressed = keyPressed;
 	player->control.up = (keyPressed & 1);
 	player->control.down = (keyPressed & 2);

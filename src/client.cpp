@@ -1275,6 +1275,7 @@ void Client::sendPlayerPos()
 			myplayer->last_speed      == myplayer->getSpeed()    &&
 			myplayer->last_pitch      == myplayer->getPitch()    &&
 			myplayer->last_yaw        == myplayer->getYaw()      &&
+			myplayer->last_roll       == myplayer->getRoll()     &&
 			myplayer->last_keyPressed == myplayer->keyPressed)
 		return;
 
@@ -1282,6 +1283,7 @@ void Client::sendPlayerPos()
 	myplayer->last_speed      = myplayer->getSpeed();
 	myplayer->last_pitch      = myplayer->getPitch();
 	myplayer->last_yaw        = myplayer->getYaw();
+	myplayer->last_roll       = myplayer->getRoll();
 	myplayer->last_keyPressed = myplayer->keyPressed;
 
 	u16 our_peer_id;
@@ -1300,6 +1302,7 @@ void Client::sendPlayerPos()
 	v3f sf         = myplayer->getSpeed();
 	s32 pitch      = myplayer->getPitch() * 100;
 	s32 yaw        = myplayer->getYaw() * 100;
+	s32 roll       = myplayer->getRoll() * 100;
 	u32 keyPressed = myplayer->keyPressed;
 
 	v3s32 position(pf.X*100, pf.Y*100, pf.Z*100);
@@ -1310,12 +1313,13 @@ void Client::sendPlayerPos()
 		[12] v3s32 speed*100
 		[12+12] s32 pitch*100
 		[12+12+4] s32 yaw*100
-		[12+12+4+4] u32 keyPressed
+		[12+12+4+4] s32 roll*100
+		[12+12+4+4+4] u32 keyPressed
 	*/
 
-	NetworkPacket pkt(TOSERVER_PLAYERPOS, 12 + 12 + 4 + 4 + 4);
+	NetworkPacket pkt(TOSERVER_PLAYERPOS, 12 + 12 + 4 + 4 + 4 + 4);
 
-	pkt << position << speed << pitch << yaw << keyPressed;
+	pkt << position << speed << pitch << yaw << roll << keyPressed;
 
 	Send(&pkt);
 }

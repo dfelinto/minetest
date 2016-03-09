@@ -41,6 +41,7 @@ LocalPlayer::LocalPlayer(IGameDef *gamedef, const char *name):
 	last_speed(v3f(0,0,0)),
 	last_pitch(0),
 	last_yaw(0),
+	last_roll(0),
 	last_keyPressed(0),
 	camera_impact(0.f),
 	last_animation(NO_ANIM),
@@ -409,6 +410,7 @@ void LocalPlayer::applyControl(float dtime)
 
 	setPitch(control.pitch);
 	setYaw(control.yaw);
+	setRoll(control.roll);
 
 	// Nullify speed and don't run positioning code if the player is attached
 	if(isAttached)

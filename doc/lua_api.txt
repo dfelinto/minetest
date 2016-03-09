@@ -2691,8 +2691,10 @@ This is basically a reference to a C++ `ServerActiveObject`
      * Angle ranges between -pi/2 and pi/2, which are straight down and up respectively.
 * `get_look_yaw()`: yaw in radians - Deprecated as broken. Use get_look_horizontal.
      * Angle is counter-clockwise from the +x direction.
+* `get_look_roll()`: roll in radians
 * `set_look_pitch(radians)`: sets look pitch - Deprecated. Use set_look_vertical.
 * `set_look_yaw(radians)`: sets look yaw - Deprecated. Use set_look_horizontal.
+* `set_look_roll(radians)`: sets look roll
 * `get_breath()`: returns players breath
 * `set_breath(value)`: sets players breath
      * values:

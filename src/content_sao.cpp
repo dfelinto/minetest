@@ -1063,6 +1063,12 @@ void PlayerSAO::setPitch(float pitch)
 	((Server*)m_env->getGameDef())->SendMovePlayer(m_peer_id);
 }
 
+void PlayerSAO::setRoll(float roll)
+{
+	m_player->setRoll(roll);
+	((Server*)m_env->getGameDef())->SendMovePlayer(m_peer_id);
+}
+
 int PlayerSAO::punch(v3f dir,
 	const ToolCapabilities *toolcap,
 	ServerActiveObject *puncher,

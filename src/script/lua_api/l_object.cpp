@@ -1107,6 +1107,18 @@ int ObjectRef::l_set_look_horizontal(lua_State *L)
 	return 1;
 }
 
+// get_look_roll(self)
+int ObjectRef::l_get_look_roll(lua_State *L)
+{
+	NO_MAP_LOCK_REQUIRED;
+	ObjectRef *ref = checkobject(L, 1);
+	Player *player = getplayer(ref);
+	if (player == NULL) return 0;
+	// Do it
+	lua_pushnumber(L, player->getRadRoll());
+	return 1;
+}
+
 // DEPRECATED
 // set_look_pitch(self, radians)
 int ObjectRef::l_set_look_pitch(lua_State *L)
@@ -1140,6 +1152,19 @@ int ObjectRef::l_set_look_yaw(lua_State *L)
 	float yaw = luaL_checknumber(L, 2) * core::RADTODEG;
 	// Do it
 	co->setYaw(yaw);
+	return 1;
+}
+
+// set_look_roll(self, radians)
+int ObjectRef::l_set_look_roll(lua_State *L)
+{
+	NO_MAP_LOCK_REQUIRED;
+	ObjectRef *ref = checkobject(L, 1);
+	PlayerSAO* co = getplayersao(ref);
+	if (co == NULL) return 0;
+	float roll = luaL_checknumber(L, 2) * core::RADTODEG;
+	// Do it
+	co->setRoll(roll);
 	return 1;
 }
 
@@ -1824,12 +1849,14 @@ const luaL_reg ObjectRef::methods[] = {
 	luamethod(ObjectRef, get_look_dir),
 	luamethod(ObjectRef, get_look_pitch),
 	luamethod(ObjectRef, get_look_yaw),
+	luamethod(ObjectRef, get_look_roll),
 	luamethod(ObjectRef, get_look_vertical),
 	luamethod(ObjectRef, get_look_horizontal),
 	luamethod(ObjectRef, set_look_horizontal),
 	luamethod(ObjectRef, set_look_vertical),
 	luamethod(ObjectRef, set_look_yaw),
 	luamethod(ObjectRef, set_look_pitch),
+	luamethod(ObjectRef, set_look_roll),
 	luamethod(ObjectRef, get_breath),
 	luamethod(ObjectRef, set_breath),
 	luamethod(ObjectRef, set_inventory_formspec),

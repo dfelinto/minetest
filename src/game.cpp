@@ -1415,6 +1415,7 @@ struct FpsControl {
 struct CameraOrientation {
 	f32 camera_yaw;    // "right/left"
 	f32 camera_pitch;  // "up/down"
+	f32 camera_roll;   // sideways
 };
 
 struct GameRunData {
@@ -1961,6 +1962,8 @@ void Game::run()
 				cam_view.camera_yaw) * cam_smoothing;
 		cam_view.camera_pitch += (cam_view_target.camera_pitch -
 				cam_view.camera_pitch) * cam_smoothing;
+		cam_view.camera_roll += (cam_view_target.camera_roll -
+				cam_view.camera_roll) * cam_smoothing;
 		updatePlayerControl(cam_view);
 		step(&dtime);
 		processClientEvents(&cam_view_target, &runData.damage_flash);
@@ -3229,6 +3232,7 @@ void Game::updateCameraOrientation(CameraOrientation *cam,
 	if (g_touchscreengui) {
 		cam->camera_yaw   = g_touchscreengui->getYaw();
 		cam->camera_pitch = g_touchscreengui->getPitch();
+		cam->camera_roll = g_touchscreengui->getRoll();
 	} else {
 #endif
 
@@ -3279,6 +3283,7 @@ void Game::updatePlayerControl(const CameraOrientation &cam)
 		isRightPressed(),
 		cam.camera_pitch,
 		cam.camera_yaw,
+		cam.camera_roll,
 		input->joystick.getAxisWithoutDead(JA_SIDEWARD_MOVE),
 		input->joystick.getAxisWithoutDead(JA_FORWARD_MOVE)
 	);
@@ -3359,6 +3364,7 @@ void Game::processClientEvents(CameraOrientation *cam, float *damage_flash)
 		} else if (event.type == CE_PLAYER_FORCE_MOVE) {
 			cam->camera_yaw = event.player_force_move.yaw;
 			cam->camera_pitch = event.player_force_move.pitch;
+			cam->camera_roll = event.player_force_move.roll;
 		} else if (event.type == CE_DEATHSCREEN) {
 			show_deathscreen(&current_formspec, client, gamedef, texture_src,
 				device, &input->joystick, client);
@@ -4120,7 +4126,7 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats,
 
 	sky->update(time_of_day_smooth, time_brightness, direct_brightness,
 			sunlight_seen, camera->getCameraMode(), player->getYaw(),
-			player->getPitch());
+			player->getPitch(), player->getRoll());
 
 	/*
 		Update clouds

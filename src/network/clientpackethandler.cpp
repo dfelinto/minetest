@@ -548,9 +548,9 @@ void Client::handleCommand_MovePlayer(NetworkPacket* pkt)
 	assert(player != NULL);
 
 	v3f pos;
-	f32 pitch, yaw;
+	f32 pitch, yaw, roll;
 
-	*pkt >> pos >> pitch >> yaw;
+	*pkt >> pos >> pitch >> yaw >> roll;
 
 	player->got_teleported = true;
 	player->setPosition(pos);
@@ -559,6 +559,7 @@ void Client::handleCommand_MovePlayer(NetworkPacket* pkt)
 			<< " pos=(" << pos.X << "," << pos.Y << "," << pos.Z << ")"
 			<< " pitch=" << pitch
 			<< " yaw=" << yaw
+			<< " roll=" << roll
 			<< std::endl;
 
 	/*
@@ -571,6 +572,7 @@ void Client::handleCommand_MovePlayer(NetworkPacket* pkt)
 	event.type = CE_PLAYER_FORCE_MOVE;
 	event.player_force_move.pitch = pitch;
 	event.player_force_move.yaw = yaw;
+	event.player_force_move.roll = roll;
 	m_client_event_queue.push(event);
 
 	// Ignore damage for a few seconds, so that the player doesn't
