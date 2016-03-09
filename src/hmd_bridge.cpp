@@ -167,7 +167,9 @@ bool HMDManager::loop()
 		return false;
 	}
 
-	return m_hmd->update(m_orientationRaw[HMD_LEFT], m_positionRaw[HMD_LEFT], m_orientationRaw[HMD_RIGHT], m_positionRaw[HMD_RIGHT]);
+	return m_hmd->update(
+		&m_yaw[HMD_LEFT], &m_pitch[HMD_LEFT], &m_roll[HMD_LEFT], m_positionRaw[HMD_LEFT],
+		&m_yaw[HMD_RIGHT], &m_pitch[HMD_RIGHT], &m_roll[HMD_RIGHT], m_positionRaw[HMD_RIGHT]);
 }
 
 void HMDManager::getPosition(int eye, irr::core::vector3df& position)
@@ -175,28 +177,26 @@ void HMDManager::getPosition(int eye, irr::core::vector3df& position)
 	position.X = m_positionRaw[eye][0];
 	position.Y = m_positionRaw[eye][1];
 	position.Z = m_positionRaw[eye][2];
+
+#if 0
+	printf("position: (%d) %4.2f, %4.2f, %4.2f\n", 0, m_positionRaw[0][0], m_positionRaw[0][1], m_positionRaw[0][2]);
+	printf("position: (%d) %4.2f, %4.2f, %4.2f\n", 1, m_positionRaw[1][0], m_positionRaw[1][1], m_positionRaw[1][2]);
+#endif
 }
 
 void HMDManager::getOrientation(int eye, core::quaternion& orientation)
 {
-	orientation.W = m_orientationRaw[eye][0];
-	orientation.X = m_orientationRaw[eye][1];
-	orientation.Y = m_orientationRaw[eye][2];
-	orientation.Z = m_orientationRaw[eye][3];
+	orientation.W =  m_orientationRaw[eye][0];
+	orientation.X = -m_orientationRaw[eye][3];
+	orientation.Y =  m_orientationRaw[eye][1];
+	orientation.Z =  m_orientationRaw[eye][2];
 }
 
-void HMDManager::getEuler(float *r_yaw, float *r_pitch, float *r_roll)
+void HMDManager::getEuler(int eye, float *r_yaw, float *r_pitch, float *r_roll)
 {
-	core::vector3df euler;
-	core::quaternion orientation;
-
-	/* at least for Oculus, both eyes have the same orientation */
-	this->getOrientation(HMD_LEFT, orientation);
-	orientation.toEuler(euler);
-
-	*r_yaw = RadToDegree(euler.Y);
-	*r_pitch = -RadToDegree(euler.X);
-	*r_roll = RadToDegree(euler.Z);
+	*r_yaw = RadToDegree(m_yaw[eye]);
+	*r_pitch = -RadToDegree(m_pitch[eye]);
+	*r_roll = RadToDegree(m_roll[eye]);
 }
 
 void HMDManager::getProjectionMatrix(int eye, const float nearz, const float farz, irr::core::matrix4& matrix)

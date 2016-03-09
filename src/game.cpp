@@ -3240,7 +3240,7 @@ void Game::updateCameraOrientation(CameraOrientation *cam,
 {
 	if (g_settings->get("3d_mode") == "hmd") {
 		HMDManager *hmd = client->getHMD();
-		hmd->getEuler(&cam->camera_yaw, &cam->camera_pitch, &cam->camera_roll);
+		hmd->getEuler(0, &cam->camera_yaw, &cam->camera_pitch, &cam->camera_roll);
 		return;
 	}
 

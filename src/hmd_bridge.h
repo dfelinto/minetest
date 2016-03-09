@@ -45,7 +45,7 @@ public:
 	void getProjectionMatrix(int eye, float nearz, float farz, irr::core::matrix4& matrix);
 	void getPosition(int eye, irr::core::vector3df& position);
 	void getOrientation(int eye, core::quaternion& orientation);
-	void getEuler(float *r_yaw, float *r_pitch, float *r_roll);
+	void getEuler(int eye, float *r_yaw, float *r_pitch, float *r_roll);
 
 	bool init(video::IVideoDriver *driver);
 	bool loop();
@@ -60,6 +60,9 @@ private:
 	video::ITexture* m_image[2];
 
 	unsigned int m_colorTexture[2];
+	float m_yaw[2];
+	float m_pitch[2];
+	float m_roll[2];
 	float m_orientationRaw[2][4];
 	float m_positionRaw[2][3];
 	v2u32 m_screenSize[2];
