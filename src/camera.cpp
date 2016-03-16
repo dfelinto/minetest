@@ -330,6 +330,35 @@ void Camera::update(LocalPlayer* player, f32 frametime, f32 busytime,
 	v3f abs_cam_up;
 	m_headnode->getAbsoluteTransformation().rotateVect(abs_cam_up, rel_cam_up);
 
+#if 0
+	/*
+	we are very close to get roll working
+	if someone more comfortable with this math is willing to step in
+	please go ahead
+	*/
+	if (true) {
+		float pitch = player->getPitch();
+		float yaw = player->getYaw();
+		float roll = player->getRoll();
+
+		irr::core::vector3df euler;
+
+		euler.X = pitch;
+		euler.Y = yaw;
+		euler.Z = roll;
+
+		v3f new_up;
+		new_up = euler.rotationToDirection(irr::core::vector3df(0.0, 1.0, 0.0));
+
+		printf("Roll: %4.2f\n", player->getRoll());
+		printf("UP original: %4.2f, %4.2f, %4.2f\n", abs_cam_up.X, abs_cam_up.Y, abs_cam_up.Z);
+		printf("UP new     : %4.2f, %4.2f, %4.2f\n", new_up.X, new_up.Y, new_up.Z);
+		printf("\n");
+		abs_cam_up = new_up;
+		abs_cam_up.X = -abs_cam_up.X;
+	}
+#endif
+
 	// Seperate camera position for calculation
 	v3f my_cp = m_camera_position;
 

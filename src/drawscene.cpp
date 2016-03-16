@@ -122,6 +122,36 @@ void init_texture(video::IVideoDriver* driver, const v2u32& screensize,
 			irr::video::ECF_A8R8G8B8);
 }
 
+static irr::core::vector3df get_hmd_target(
+	const irr::core::vector3df& eye_pos,
+	const irr::core::quaternion& orientation,
+	scene::ICameraSceneNode *cameraNode)
+{
+	irr::core::vector3df target;
+
+#if 1
+	target = eye_pos + (cameraNode->getTarget() - eye_pos).setLength(1);
+#elif 0
+	irr::core::matrix4 rotation;
+	rotation = orientation.getMatrix();
+	target = eye_pos + v3f(rotation[0], rotation[1], rotation[2]);
+#elif 0
+	irr::core::vector3df forward;
+	forward = (irr::core::quaternion(-orientation.X, -orientation.Y, -orientation.Z, orientation.W) * v3f(1.0f, 0.0f, 0.0f));
+	forward.normalize();
+	target = eye_pos + forward;
+#elif 0
+	irr::core::quaternion orientationInverse;
+	orientationInverse = orientation;
+	orientationInverse.makeInverse();
+
+	target = orientationInverse * (orientation * v3f(0.0f, 0.0f, -1.0f));
+	target = eye_pos + v3f(rotation[8], rotation[9], rotation[10]);
+#endif
+
+	return target;
+}
+
 static void draw_image(
 	video::ITexture* image,
 	const v2u32& screensize,
@@ -129,7 +159,7 @@ static void draw_image(
 	const irr::core::quaternion& orientation,
 	const irr::core::matrix4& projectionMatrix,
 	const irr::core::matrix4& startMatrix,
-	const irr::core::vector3df& focusPoint, bool show_hud,
+	bool show_hud,
 	video::IVideoDriver* driver, Camera& camera, scene::ISceneManager* smgr,
 	Hud& hud, std::vector<aabb3f>& hilightboxes,
 	bool draw_wield_tool, Client& client, gui::IGUIEnvironment* guienv,
@@ -137,7 +167,7 @@ static void draw_image(
 {
 	scene::ICameraSceneNode *cameraNode = camera.getCameraNode();
 
-	irr::core::vector3df eye_pos;
+	irr::core::vector3df eye_pos, target;
 	irr::core::matrix4 movement;
 	movement.setTranslation(position);
 
@@ -147,15 +177,16 @@ static void draw_image(
 		irr::video::SColor(255,
 		skycolor.getRed(), skycolor.getGreen(), skycolor.getBlue()));
 
+	target = get_hmd_target(eye_pos, orientation, cameraNode);
+
 	//clear the depth buffer
 	driver->clearZBuffer();
-	cameraNode->setPosition(eye_pos);
-	cameraNode->setTarget(focusPoint);
+	cameraNode->setPosition(position);
+	cameraNode->setTarget(target);
 	cameraNode->setProjectionMatrix(projectionMatrix);
-	smgr->drawAll();
-
 	driver->setTransform(video::ETS_WORLD, core::IdentityMatrix);
 
+	smgr->drawAll();
 	guienv->drawAll();
 
 	/* switch back to real renderer */
@@ -506,6 +537,8 @@ void draw_hmd_3d_mode(Camera& camera, bool show_hud,
 	/* save current info */
 	irr::core::vector3df oldPosition = cameraNode->getPosition();
 	irr::core::vector3df oldTarget = cameraNode->getTarget();
+	irr::core::matrix4 oldProjectionMatrix = cameraNode->getProjectionMatrix();
+
 	irr::core::matrix4 startMatrix = cameraNode->getAbsoluteTransformation();
 	irr::core::vector3df focusPoint = (cameraNode->getTarget()
 		- cameraNode->getAbsolutePosition()).setLength(1)
@@ -529,20 +562,23 @@ void draw_hmd_3d_mode(Camera& camera, bool show_hud,
 	hmd->getPosition(0, position);
 	hmd->getOrientation(0, orientation);
 	hmd->getProjectionMatrix(0, nearz, farz, projectionMatrix);
+
 	draw_image(
 		image[0],
 		hmd->getScreenSize(0),
-		position,
+		oldPosition,
 		orientation,
 		projectionMatrix,
 		startMatrix,
-		focusPoint, show_hud, driver, camera, smgr, hud, hilightboxes,
+		show_hud, driver, camera, smgr, hud, hilightboxes,
 		draw_wield_tool, client, guienv, skycolor);
 
+#if 0
 	/* create right view */
 	hmd->getPosition(1, position);
 	hmd->getOrientation(1, orientation);
 	hmd->getProjectionMatrix(1, nearz, farz, projectionMatrix);
+
 	draw_image(
 		image[1],
 		hmd->getScreenSize(1),
@@ -550,12 +586,20 @@ void draw_hmd_3d_mode(Camera& camera, bool show_hud,
 		orientation,
 		projectionMatrix,
 		startMatrix,
+		show_hud, driver, camera, smgr, hud, hilightboxes,
+		draw_wield_tool, client, guienv, skycolor);
+#else
+	cameraNode->setProjectionMatrix(oldProjectionMatrix);
+
+	video::ITexture* left_image = draw_image(screensize, LEFT, startMatrix,
 		focusPoint, show_hud, driver, camera, smgr, hud, hilightboxes,
 		draw_wield_tool, client, guienv, skycolor);
+#endif
 
 	/* show rendered result in the HMD */
 	hmd->frameReady();
 
+	cameraNode->setProjectionMatrix(oldProjectionMatrix);
 	if (hmd->getPreview()) {
 
 		/* create hud overlay */
@@ -573,10 +617,15 @@ void draw_hmd_3d_mode(Camera& camera, bool show_hud,
 			irr::core::rect<s32>(0, 0, screensize.X / 2, screensize.Y),
 			irr::core::rect<s32>(0, 0, screensize.X, screensize.Y), 0, 0, true);
 
+#if 0
 		draw2DImageFilterScaled(driver, image[1],
 			irr::core::rect<s32>(screensize.X / 2, 0, screensize.X, screensize.Y),
 			irr::core::rect<s32>(0, 0, screensize.X, screensize.Y), 0, 0, false);
-
+#else
+		draw2DImageFilterScaled(driver, left_image,
+			irr::core::rect<s32>(screensize.X / 2, 0, screensize.X, screensize.Y),
+			irr::core::rect<s32>(0, 0, screensize.X, screensize.Y), 0, 0, false);
+#endif
 		draw2DImageFilterScaled(driver, hudtexture,
 			irr::core::rect<s32>(screensize.X / 2, 0, screensize.X, screensize.Y),
 			irr::core::rect<s32>(0, 0, screensize.X, screensize.Y), 0, 0, true);
@@ -585,6 +634,7 @@ void draw_hmd_3d_mode(Camera& camera, bool show_hud,
 	/* cleanup */
 	cameraNode->setPosition(oldPosition);
 	cameraNode->setTarget(oldTarget);
+	cameraNode->setProjectionMatrix(oldProjectionMatrix);
 }
 
 void draw_plain(Camera& camera, bool show_hud, Hud& hud,
