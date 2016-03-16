@@ -617,6 +617,18 @@ A nodebox is defined as any of:
         wall_bottom = box,
         wall_side = box
     }
+    {
+        -- A node that has optional boxes depending on neighbouring nodes'
+        -- presence and type. See also `connects_to`.
+        type = "connected",
+        fixed = box OR {box1, box2, ...}
+        connect_top = box OR {box1, box2, ...}
+        connect_bottom = box OR {box1, box2, ...}
+        connect_front = box OR {box1, box2, ...}
+        connect_left = box OR {box1, box2, ...}
+        connect_back = box OR {box1, box2, ...}
+        connect_right = box OR {box1, box2, ...}
+    }
 
 A `box` is defined as:
 
@@ -1727,7 +1739,7 @@ Helper functions
 * `minetest.is_yes(arg)`
     * returns whether `arg` can be interpreted as yes
 * `minetest.get_us_time()`
-    * returns time with microsecond precision
+    * returns time with microsecond precision. May not return wall time.
 * `table.copy(table)`: returns a table
     * returns a deep copy of `table`
 
@@ -1793,6 +1805,7 @@ Call these functions only at load time!
 
 * `minetest.register_entity(name, prototype table)`
 * `minetest.register_abm(abm definition)`
+* `minetest.register_lbm(lbm definition)`
 * `minetest.register_node(name, node definition)`
 * `minetest.register_tool(name, item definition)`
 * `minetest.register_craftitem(name, item definition)`
@@ -1997,6 +2010,8 @@ and `minetest.auth_reload` call the authetification handler.
     * `val` is between `0` and `1`; `0` for midnight, `0.5` for midday
 * `minetest.get_timeofday()`
 * `minetest.get_gametime()`: returns the time, in seconds, since the world was created
+* `minetest.get_day_count()`: returns number days elapsed since world was created,
+    * accounting for time changes.
 * `minetest.find_node_near(pos, radius, nodenames)`: returns pos or `nil`
     * `radius`: using a maximum metric
     * `nodenames`: e.g. `{"ignore", "group:tree"}` or `"default:dirt"`
@@ -2046,8 +2061,12 @@ and `minetest.auth_reload` call the authetification handler.
 * `minetest.generate_decorations(vm, pos1, pos2)`
     * Generate all registered decorations within the VoxelManip `vm` and in the area from `pos1` to `pos2`.
     * `pos1` and `pos2` are optional and default to mapchunk minp and maxp.
-* `minetest.clear_objects()`
-    * clear all objects in the environments
+* `minetest.clear_objects([options])`
+    * Clear all objects in the environment
+    * Takes an optional table as an argument with the field `mode`.
+        * mode = `"full"`: Load and go through every mapblock, clearing objects (default).
+        * mode = `"quick"`: Clear objects immediately in loaded mapblocks;
+          clear objects in unloaded mapblocks only when the mapblocks are next activated.
 * `minetest.emerge_area(pos1, pos2, [callback], [param])`
     * Queue all blocks in the area from `pos1` to `pos2`, inclusive, to be asynchronously
     * fetched from memory, loaded from disk, or if inexistent, generates them.
@@ -2149,6 +2168,8 @@ and `minetest.auth_reload` call the authetification handler.
     * Convert a facedir back into a vector aimed directly out the "back" of a node
 * `minetest.dir_to_wallmounted(dir)`
     * Convert a vector to a wallmounted value, used for `paramtype2="wallmounted"`
+* `minetest.wallmounted_to_dir(wallmounted)`
+    * Convert a wallmounted value back into a vector aimed directly out the "back" of a node
 * `minetest.get_node_drops(nodename, toolname)`
     * Returns list of item names.
     * **Note**: This will be removed or modified in a future version.
@@ -2242,7 +2263,7 @@ These functions return the leftover itemstack.
 
 ### Timing
 * `minetest.after(time, func, ...)`
-    * Call the function `func` after `time` seconds
+    * Call the function `func` after `time` seconds, may be fractional
     * Optional: Variable number of arguments that are passed to `func`
 
 ### Server
@@ -2323,6 +2344,26 @@ These functions return the leftover itemstack.
     * position comments for every X row generated in the schematic data for easier reading.
     * If `lua_num_indent_spaces` is a nonzero number and `format` is "lua", the Lua code generated
     * will use that number of spaces as indentation instead of a tab character.
+
+### HTTP Requests:
+* `minetest.request_http_api()`:
+    * returns `HTTPApiTable` containing http functions if the calling mod has been granted
+      access by being listed in the `secure.http_mods` or `secure.trusted_mods` setting,
+      otherwise returns `nil`.
+    * The returned table contains the functions `fetch`, `fetch_async` and `fetch_async_get`
+      described below.
+    * Only works at init time and must be called from the mod's main scope (not from a function).
+    * Function only exists if minetest server was built with cURL support.
+    * **DO NOT ALLOW ANY OTHER MODS TO ACCESS THE RETURNED TABLE, STORE IT IN
+      A LOCAL VARIABLE!**
+* `HTTPApiTable.fetch(HTTPRequest req, callback)`
+    * Performs given request asynchronously and calls callback upon completion
+    * callback: `function(HTTPRequestResult res)`
+    * Use this HTTP function if you are unsure, the others are for advanced use.
+* `HTTPApiTable.fetch_async(HTTPRequest req)`: returns handle
+    * Performs given request asynchronously and returns handle for `minetest.http_fetch_async_get`
+* `HTTPApiTable.fetch_async_get(handle)`: returns HTTPRequestResult
+    * Return response data for given asynchronous HTTP request
 
 ### Misc.
 * `minetest.get_connected_players()`: returns list of `ObjectRefs`
@@ -2431,7 +2472,7 @@ These functions return the leftover itemstack.
 * `minetest.request_insecure_environment()`: returns an environment containing
   insecure functions if the calling mod has been listed as trusted in the
   `secure.trusted_mods` setting or security is disabled, otherwise returns `nil`.
-    * Only works at init time.
+    * Only works at init time and must be called from the mod's main scope (not from a function).
     * **DO NOT ALLOW ANY OTHER MODS TO ACCESS THE RETURNED ENVIRONMENT, STORE IT IN
       A LOCAL VARIABLE!**
 
@@ -2700,8 +2741,7 @@ If you chose the parameter-less constructor, a fast implementation will be autom
 * `get_area(id, include_borders, include_data)`: returns the area with the id `id`. (optional) Boolean values `include_borders` and `include_data` control what's copied.
 * `get_areas_for_pos(pos, include_borders, include_data)`: returns all areas that contain the position `pos`. (optional) Boolean values `include_borders` and `include_data` control what's copied.
 * `get_areas_in_area(edge1, edge2, accept_overlap, include_borders, include_data)`: returns all areas that contain all nodes inside the area specified by `edge1` and `edge2` (inclusive). If `accept_overlap` is true, also areas are returned that have nodes in common with the specified area. (optional) Boolean values `include_borders` and `include_data` control what's copied.
-* `insert_area(edge1, edge2, data)`: inserts an area into the store. Returns the id if successful, nil otherwise. The (inclusive) positions `edge1` and `edge2` describe the area, `data`
-is a string stored with the area.
+* `insert_area(edge1, edge2, data, [id])`: inserts an area into the store. Returns the new area's ID, or nil if the insertion failed. The (inclusive) positions `edge1` and `edge2` describe the area. `data` is a string stored with the area.  If passed, `id` will be used as the internal area ID, it must be a unique number between 0 and 2^32-2. If you use the `id` parameter you must always use it, or insertions are likely to fail due to conflicts.
 * `reserve(count)`: reserves resources for at most `count` many contained areas. Only needed for efficiency, and only some implementations profit.
 * `remove_area(id)`: removes the area with the given id from the store, returns success.
 * `set_cache_params(params)`: sets params for the included prefiltering cache. Calling invalidates the cache, so that its elements have to be newly generated.
@@ -2711,6 +2751,10 @@ is a string stored with the area.
         block_radius = number, -- the radius (in nodes) of the areas the cache generates prefiltered lists for, minimum 16, default 64
         limit = number, -- the cache's size, minimum 20, default 1000
       }
+* `to_string()`: Experimental. Returns area store serialized as a (binary) string.
+* `to_file(filename)`: Experimental. Like `to_string()`, but writes the data to a file.
+* `from_string(str)`: Experimental. Deserializes string and loads it into the AreaStore.  Returns success and, optionally, an error message.
+* `from_file(filename)`: Experimental. Like `from_string()`, but reads the data from a file.
 
 ### `ItemStack`
 An `ItemStack` is a stack of items.
@@ -3279,6 +3323,21 @@ Definition tables
         action = func(pos, node, active_object_count, active_object_count_wider),
     }
 
+### LBM (LoadingBlockModifier) definition (`register_lbm`)
+
+    {
+        name = "modname:replace_legacy_door",
+        nodenames = {"default:lava_source"},
+    --  ^ List of node names to trigger the LBM on.
+    --    Also non-registered nodes will work.
+    --    Groups (as of group:groupname) will work as well.
+        run_at_every_load = false,
+    --  ^ Whether to run the LBM's action every time a block gets loaded,
+    --    and not just for blocks that were saved last time before LBMs were
+    --    introduced to the world.
+        action = func(pos, node),
+    }
+
 ### Item definition (`register_node`, `register_craftitem`, `register_tool`)
 
     {
@@ -3414,6 +3473,12 @@ Definition tables
         light_source = 0, -- Amount of light emitted by node
         damage_per_second = 0, -- If player is inside node, this damage is caused
         node_box = {type="regular"}, -- See "Node boxes"
+        connects_to = nodenames, --[[
+        * Used for nodebox nodes with the type == "connected"
+        * Specifies to what neighboring nodes connections will be drawn
+        * e.g. `{"group:fence", "default:wood"}` or `"default:stone"` ]]
+        connect_sides = { "top", "bottom", "front", "left", "back", "right" }, --[[
+        ^ Tells connected nodebox nodes to connect only to these sides of this node. ]]
         mesh = "model",
         selection_box = {type="regular"}, -- See "Node boxes" --[[
         ^ If drawtype "nodebox" is used and selection_box is nil, then node_box is used. ]]
@@ -3672,11 +3737,12 @@ Definition tables
     -- ^ Minimum and maximum `y` positions these decorations can be generated at.
     -- ^ This parameter refers to the `y` position of the decoration base, so
     --   the actual maximum height would be `height_max + size.Y`.
-        flags = "liquid_surface",
+        flags = "liquid_surface, force_placement",
     --  ^ Flags for all decoration types.
     --  ^ "liquid_surface": Instead of placement on the highest solid surface
     --  ^ in a mapchunk column, placement is on the highest liquid surface.
     --  ^ Placement is disabled if solid nodes are found above the liquid surface.
+    --  ^ "force_placement": Nodes other than "air" and "ignore" are replaced by the decoration.
 
         ----- Simple-type parameters
         decoration = "default:grass",
@@ -3720,7 +3786,7 @@ Definition tables
         },
     --  ^ See 'Schematic specifier' for details.
         replacements = {["oldname"] = "convert_to", ...},
-        flags = "place_center_x, place_center_y, place_center_z, force_placement",
+        flags = "place_center_x, place_center_y, place_center_z",
     --  ^ Flags for schematic decorations.  See 'Schematic attributes'.
         rotation = "90" -- rotate schematic 90 degrees on placement
     --  ^ Rotation can be "0", "90", "180", "270", or "random".
@@ -3830,4 +3896,38 @@ Definition tables
     --  ^ Uses texture (string)
         playername = "singleplayer"
     --  ^ Playername is optional, if specified spawns particle only on the player's client
+    }
+
+### `HTTPRequest` definition (`http_fetch`, `http_fetch_async`)
+
+    {
+        url = "http://example.org",
+        timeout = 10,
+     -- ^ Timeout for connection in seconds. Default is 3 seconds.
+        post_data = "Raw POST request data string" OR { field1 = "data1", field2 = "data2" },
+     -- ^ Optional, if specified a POST request with post_data is performed.
+     -- ^ Accepts both a string and a table. If a table is specified, encodes table
+     -- ^ as x-www-form-urlencoded key-value pairs.
+     -- ^ If post_data ist not specified, a GET request is performed instead.
+        user_agent = "ExampleUserAgent",
+     -- ^ Optional, if specified replaces the default minetest user agent with given string
+        extra_headers = { "Accept-Language: en-us", "Accept-Charset: utf-8" },
+     -- ^ Optional, if specified adds additional headers to the HTTP request. You must make sure
+     -- ^ that the header strings follow HTTP specification ("Key: Value").
+        multipart = boolean
+     -- ^ Optional, if true performs a multipart HTTP request. Default is false.
+    }
+
+### `HTTPRequestResult` definition (`http_fetch` callback, `http_fetch_async_get`)
+
+    {
+        completed = true,
+     -- ^ If true, the request has finished (either succeeded, failed or timed out)
+        succeeded = true,
+     -- ^ If true, the request was succesful
+        timeout = false,
+     -- ^ If true, the request timed out
+        code = 200,
+     -- ^ HTTP status code
+        data = "response"
     }

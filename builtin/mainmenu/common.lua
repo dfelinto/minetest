@@ -22,9 +22,14 @@ menudata = {}
 --------------------------------------------------------------------------------
 -- Local cached values
 --------------------------------------------------------------------------------
-local min_supp_proto = core.get_min_supp_proto()
-local max_supp_proto = core.get_max_supp_proto()
+local min_supp_proto
+local max_supp_proto
 
+function common_update_cached_supp_proto()
+	min_supp_proto = core.get_min_supp_proto()
+	max_supp_proto = core.get_max_supp_proto()
+end
+common_update_cached_supp_proto()
 --------------------------------------------------------------------------------
 -- Menu helper functions
 --------------------------------------------------------------------------------
@@ -67,13 +72,13 @@ function order_favorite_list(list)
 	for i=1,#list,1 do
 		local fav = list[i]
 		if is_server_protocol_compat(fav.proto_min, fav.proto_max) then
-			table.insert(res, fav)
+			res[#res + 1] = fav
 		end
 	end
 	for i=1,#list,1 do
 		local fav = list[i]
 		if not is_server_protocol_compat(fav.proto_min, fav.proto_max) then
-			table.insert(res, fav)
+			res[#res + 1] = fav
 		end
 	end
 	return res
@@ -105,7 +110,7 @@ function render_favorite(spec,render_details)
 	end
 
 	local details = ""
-	local grey_out = not is_server_protocol_compat(spec.proto_max, spec.proto_min)
+	local grey_out = not is_server_protocol_compat(spec.proto_min, spec.proto_max)
 
 	if spec.clients ~= nil and spec.clients_max ~= nil then
 		local clients_color = ''

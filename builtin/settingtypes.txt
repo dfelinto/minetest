@@ -209,11 +209,11 @@ keymap_toggle_profiler (Profiler toggle key) key KEY_F6
 #    See http://irrlicht.sourceforge.net/docu/namespaceirr.html#a54da2a0e231901735e3da1b0edf72eb3
 keymap_camera_mode (Toggle camera mode key) key KEY_F7
 
-#    Key for increasing the viewing range. Modifies the minimum viewing range.
+#    Key for increasing the viewing range.
 #    See http://irrlicht.sourceforge.net/docu/namespaceirr.html#a54da2a0e231901735e3da1b0edf72eb3
 keymap_increase_viewing_range_min (View range increase key) key +
 
-#    Key for decreasing the viewing range. Modifies the minimum viewing range.
+#    Key for decreasing the viewing range.
 #    See http://irrlicht.sourceforge.net/docu/namespaceirr.html#a54da2a0e231901735e3da1b0edf72eb3
 keymap_decrease_viewing_range_min (View range decrease key) key -
 
@@ -231,6 +231,12 @@ address (Server address) string
 #    Port to connect to (UDP).
 #    Note that the port field in the main menu overrides this setting.
 remote_port (Remote port) int 30000 1 65535
+
+#    Whether to support older servers before protocol version 25.
+#    Enable if you want to connect to 0.4.12 servers and before.
+#    Servers starting with 0.4.13 will work, 0.4.12-dev servers may work.
+#    Disabling this option will protect your password better.
+send_pre_v25_init (Support older servers) bool true
 
 #    Save the map received by the client on disk.
 enable_local_map_saving (Saving map received from server) bool false
@@ -252,13 +258,11 @@ serverlist_file (Serverlist file) string favoriteservers.txt
 
 [***Basic]
 
+#    Enable VBO
+enable_vbo (VBO) bool true
+
 #    Whether to fog out the end of the visible area.
 enable_fog (Fog) bool true
-
-#    Enable a bit lower water surface, so it doesn't "fill" the node completely.
-#    Note that this is not quite optimized and that smooth lighting on the
-#    water surface doesn't work with this.
-new_style_water (New style water) bool false
 
 #    Leaves style:
 #    -   Fancy:  all faces visible
@@ -278,6 +282,9 @@ enable_clouds (Clouds) bool true
 
 #    Use 3D cloud look instead of flat.
 enable_3d_clouds (3D clouds) bool true
+
+#    Method used to highlight selected object.
+node_highlighting (Node highlighting) enum box box,halo
 
 [***Filtering]
 
@@ -308,11 +315,6 @@ texture_clean_transparent (Clean transparent textures) bool false
 #    enabled.
 texture_min_size (Minimum texture size for filters) int 64
 
-#    Pre-generate all item visuals used in the inventory.
-#    This increases startup time, but runs smoother in-game.
-#    The generated textures can easily exceed your VRAM, causing artifacts in the inventory.
-preload_item_visuals (Preload inventory textures) bool false
-
 #    Experimental option, might cause visible spaces between blocks
 #    when set to higher number than 0.
 fsaa (FSAA) enum 0 0,1,2,4,8,16
@@ -322,6 +324,11 @@ fsaa (FSAA) enum 0 0,1,2,4,8,16
 #    Shaders allow advanced visul effects and may increase performance on some video cards.
 #    Thy only work with the OpenGL video backend.
 enable_shaders (Shaders) bool true
+
+[****Tone Mapping]
+
+#    Enables filmic tone mapping
+tone_mapping (Filmic tone mapping) bool false
 
 [****Bumpmapping]
 
@@ -385,10 +392,6 @@ enable_waving_plants (Waving plants) bool false
 
 [***Advanced]
 
-#    Minimum wanted FPS.
-#    The amount of rendered stuff is dynamically set according to this. and viewing range min and max.
-wanted_fps (Wanted FPS) int 30
-
 #    If FPS would go higher than this, limit it by sleeping
 #    to not waste CPU power for no benefit.
 fps_max (Maximum FPS) int 60
@@ -396,13 +399,9 @@ fps_max (Maximum FPS) int 60
 #    Maximum FPS when game is paused.
 pause_fps_max (FPS in pause menu) int 20
 
-#    The allowed adjustment range for the automatic rendering range adjustment.
-#    Set this to be equal to viewing range minimum to disable the auto-adjustment algorithm.
-viewing_range_nodes_max (Viewing range maximum) int 160
-
-#    The allowed adjustment range for the automatic rendering range adjustment.
-#    Set this to be equal to viewing range maximum to disable the auto-adjustment algorithm.
-viewing_range_nodes_min (Viewing range minimum) int 35
+#    View distance in nodes.
+#    Min = 20
+viewing_range (Viewing range) int 100
 
 #    Width component of the initial window size.
 screenW (Screen width) int 800
@@ -493,9 +492,6 @@ desynchronize_mapblock_texture_animation (Desynchronize block animation) bool tr
 #    Useful if there's something to be displayed right or left of hotbar.
 hud_hotbar_max_width (Maximum hotbar width) float 1.0
 
-#    Enable selection highlighting for nodes (disables selectionbox).
-enable_node_highlighting (Node highlighting) bool false
-
 #    Enables caching of facedir rotated meshes.
 enable_mesh_cache (Mesh cache) bool false
 
@@ -518,6 +514,9 @@ directional_colored_fog (Colored fog) bool true
 #    setting is 0.25 to 4.0 inclusive. If the value is out of range it will be
 #    set to the nearest valid value.
 ambient_occlusion_gamma (Ambient occlusion gamma) float 2.2 0.25 4.0
+
+#    Enables animation of inventory items.
+inventory_items_animations (Inventory items animations) bool false
 
 [**Menus]
 
@@ -571,6 +570,14 @@ fallback_font_shadow_alpha (Fallback font shadow alpha) int 128 0 255
 
 #    Path to save screenshots at.
 screenshot_path (Screenshot folder) path
+
+#    Format of screenshots.
+screenshot_format (Screenshot format) enum png png,jpg,bmp,pcx,ppm,tga
+
+#    Screenshot quality. Only used for JPEG format.
+#    1 means worst quality; 100 means best quality.
+#    Use 0 for default quality.
+screenshot_quality (Screenshot quality) int 0 0 100
 
 [**Advanced]
 
@@ -705,12 +712,6 @@ enable_pvp (Player versus Player) bool true
 #    If this is set, players will always (re)spawn at the given position.
 static_spawnpoint (Static spawnpoint) string
 
-#    Maximum distance above water level for player spawn.
-#    Larger values result in spawn points closer to (x = 0, z = 0).
-#    Smaller values may result in a suitable spawn point not being found,
-#    resulting in a spawn at (0, 0, 0) possibly buried underground.
-vertical_spawn_range (Vertical spawn range) int 16
-
 #    If enabled, new players cannot join with an empty password.
 disallow_empty_password (Disallow empty passwords) bool false
 
@@ -824,7 +825,7 @@ liquid_update (Liquid update tick) float 1.0
 
 #    Name of map generator to be used when creating a new world.
 #    Creating a world in the main menu will override this.
-mg_name (Mapgen name) enum v6 v5,v6,v7,flat,fractal,singlenode
+mg_name (Mapgen name) enum v6 v5,v6,v7,flat,valleys,fractal,singlenode
 
 #    Water surface level of the world.
 water_level (Water level) int 1
@@ -843,8 +844,10 @@ map_generation_limit (Map generation limit) int 31000 0 31000
 #    Global map generation attributes.
 #    In Mapgen v6 the 'decorations' flag controls all decorations except trees
 #    and junglegrass, in all other mapgens this flag controls all decorations.
+#    The default flags set in the engine are: caves, light, decorations
+#    The flags string modifies the engine defaults.
 #    Flags that are not specified in the flag string are not modified from the default.
-#    Flags starting with "no" are used to explicitly disable them.
+#    Flags starting with 'no' are used to explicitly disable them.
 mg_flags (Mapgen flags) flags caves,dungeons,light,decorations caves,dungeons,light,decorations,nocaves,nodungeons,nolight,nodecorations
 
 [**Advanced]
@@ -899,9 +902,11 @@ mgv5_np_cave2 (Mapgen v5 cave2 noise parameters) noise_params 0, 12, (50, 50, 50
 [***Mapgen v6]
 
 #    Map generation attributes specific to Mapgen v6.
-#    When snowbiomes are enabled jungles are enabled and the jungles flag is ignored.
+#    When snowbiomes are enabled jungles are automatically enabled, the 'jungles' flag is ignored.
+#    The default flags set in the engine are: biomeblend, mudflow
+#    The flags string modifies the engine defaults.
 #    Flags that are not specified in the flag string are not modified from the default.
-#    Flags starting with "no" are used to explicitly disable them.
+#    Flags starting with 'no' are used to explicitly disable them.
 mgv6_spflags (Mapgen v6 flags) flags jungles,biomeblend,mudflow,snowbiomes,trees jungles,biomeblend,mudflow,snowbiomes,flat,trees,nojungles,nobiomeblend,nomudflow,nosnowbiomes,noflat,notrees
 
 #    Controls size of deserts and beaches in Mapgen v6.
@@ -924,9 +929,11 @@ mgv6_np_apple_trees (Mapgen v6 apple trees noise parameters) noise_params 0, 1, 
 [***Mapgen v7]
 
 #    Map generation attributes specific to Mapgen v7.
-#    'ridges' are the rivers.
+#    The 'ridges' flag controls the rivers.
+#    The default flags set in the engine are: mountains, ridges
+#    The flags string modifies the engine defaults.
 #    Flags that are not specified in the flag string are not modified from the default.
-#    Flags starting with "no" are used to explicitly disable them.
+#    Flags starting with 'no' are used to explicitly disable them.
 mgv7_spflags (Mapgen v7 flags) flags mountains,ridges mountains,ridges,nomountains,noridges
 
 mgv7_np_terrain_base (Mapgen v7 terrain base noise parameters) noise_params 4, 70, (600, 600, 600), 82341, 5, 0.6, 2.0
@@ -944,9 +951,11 @@ mgv7_np_cave2 (Mapgen v7 cave2 noise parameters) noise_params 0, 12, (100, 100, 
 [***Mapgen flat]
 
 #    Map generation attributes specific to Mapgen flat.
-#    Occasional lakes and hills added to the flat world.
+#    Occasional lakes and hills can be added to the flat world.
+#    The default flags set in the engine are: none
+#    The flags string modifies the engine defaults.
 #    Flags that are not specified in the flag string are not modified from the default.
-#    Flags starting with "no" are used to explicitly disable them.
+#    Flags starting with 'no' are used to explicitly disable them.
 mgflat_spflags (Mapgen flat flags) flags  lakes,hills,,nolakes,nohills
 
 #    Y of flat ground.
@@ -1051,28 +1060,27 @@ mgfractal_np_cave2 (Mapgen fractal cave2 noise parameters) noise_params 0, 12, (
 [****General]
 
 #    Map generation attributes specific to Mapgen Valleys.
+#    'altitude_chill' makes higher elevations colder, which may cause biome issues.
+#    'humid_rivers' modifies the humidity around rivers and in areas where water would tend to pool,
+#    it may interfere with delicately adjusted biomes.
+#    The default flags set in the engine are: altitude_chill, humid_rivers
+#    The flags string modifies the engine defaults.
 #    Flags that are not specified in the flag string are not modified from the default.
-#    Flags starting with "no" are used to explicitly disable them.
-#    "altitude_chill" makes higher elevations colder, which may cause biome issues.
-#    "fast" produces softer terrain, more quickly
-#    "humid_rivers" modifies the humidity around rivers and in areas where water would tend to pool. It may interfere with delicately adjusted biomes.
-#    "rugged" and "cliffs" do nothing unless "fast" is enabled
-mg_valleys_spflags (Valleys C Flags) flags altitude_chill,cliffs,humid_rivers,nofast,rugged altitude_chill,noaltitude_chill,cliffs,nocliffs,fast,nofast,humid_rivers,nohumid_rivers,rugged,norugged
+#    Flags starting with 'no' are used to explicitly disable them.
+mg_valleys_spflags (Valleys C Flags) flags altitude_chill,humid_rivers altitude_chill,noaltitude_chill,humid_rivers,nohumid_rivers
 
 # The altitude at which temperature drops by 20C
 mg_valleys_altitude_chill (Altitude Chill) int 90
 
-# Average humidity
-mg_valleys_humidity (Humidity) int 50
+# Depth below which you'll find large caves.
+mg_valleys_large_cave_depth (Large cave depth) int -33
 
-# The highest humidity around rivers in otherwise dry areas
-mg_valleys_humidity_break_point (Humidity Break) int 65
+# Creates unpredictable lava features in caves.
+# These can make mining difficult. Zero disables them. (0-10)
+mg_valleys_lava_features (Lava Features) int 0
 
-# Maximum altitude where lava can emerge
-mg_valleys_lava_max_height (Lava Height) int 0
-
-# Maximum altitude where water occurs in caves (and tends to fall out)
-mg_valleys_cave_water_max_height (Cave Water Height) int 31000
+# Depth below which you'll find massive caves.
+mg_valleys_massive_cave_depth (Massive cave depth) int -256
 
 # How deep to make rivers
 mg_valleys_river_depth (River Depth) int 4
@@ -1080,32 +1088,27 @@ mg_valleys_river_depth (River Depth) int 4
 # How wide to make rivers
 mg_valleys_river_size (River Size) int 5
 
-# Average temperature
-mg_valleys_temperature (Temperature) int 50
-
-# How often water occurs in caves (0-10)
-mg_valleys_water_features (Water Features) int 3
+# Creates unpredictable water features in caves.
+# These can make mining difficult. Zero disables them. (0-10)
+mg_valleys_water_features (Water Features) int 0
 
 # Noise parameters
 [****Noises]
 
-# Cliff noise
-mg_valleys_np_cliffs (Cliffs) noise_params 0, 1, (750, 750, 750), 8445, 5, 1.0, 2.0
+# Caves and tunnels form at the intersection of the two noises
+mg_valleys_np_cave1 (Cave noise #1) noise_params 0, 12, (100, 100, 100), 52534, 4, 0.5, 2.0
 
-# Mountain corrugation
-mg_valleys_np_corr (Corrugation) noise_params 0, 1, (40, 40, 40), -3536, 4, 1.0, 2.0
+# Caves and tunnels form at the intersection of the two noises
+mg_valleys_np_cave2 (Cave noise #2) noise_params 0, 12, (100, 100, 100), 10325, 4, 0.5, 2.0
 
 # The depth of dirt or other filler
 mg_valleys_np_filler_depth (Filler Depth) noise_params 0, 1.2, (256, 256, 256), 1605, 3, 0.5, 2.0
 
+# Massive caves form here.
+mg_valleys_np_massive_caves (Massive cave noise) noise_params 0, 1, (768, 256, 768), 59033, 6, 0.63, 2.0
+
 # River noise -- rivers occur close to zero
 mg_valleys_np_rivers (River Noise) noise_params 0, 1, (256, 256, 256), -6050, 5, 0.6, 2.0
-
-# Caves and tunnels form at the intersection of the two noises
-mg_valleys_np_simple_caves_1 (Simple Caves #1) noise_params 0, 1, v3f(64, 64, 64), -8402, 3, 0.5, 2.0
-
-# Caves and tunnels form at the intersection of the two noises
-mg_valleys_np_simple_caves_2 (Simple Caves #2) noise_params 0, 1, v3f(64, 64, 64), 3944, 3, 0.5, 2.0
 
 # Base terrain height
 mg_valleys_np_terrain_height (Terrain Height) noise_params -10, 50, (1024, 1024, 1024), 5202, 6, 0.4, 2.0
@@ -1130,6 +1133,10 @@ secure.enable_security (Enable mod security) bool false
 #    Comma-separated list of trusted mods that are allowed to access insecure
 #    functions even when mod security is on (via request_insecure_environment()).
 secure.trusted_mods (Trusted mods) string
+
+#	Comma-seperated list of mods that are allowed to access HTTP APIs, which
+#	allow them to upload and download data to/from the internet.
+secure.http_mods (HTTP Mods) string
 
 [Client and Server]
 
