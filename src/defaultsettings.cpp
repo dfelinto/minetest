@@ -78,6 +78,7 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("hmd_display_backend", "oculus");
 	settings->setDefault("hmd_preview", "false");
 	settings->setDefault("keymap_toggle_hmd_preview", "KEY_F4");
+	settings->setDefault("keymap_hmd_recenter", "KEY_RETURN");
 
 	// Some (temporary) keys for debugging
 	settings->setDefault("keymap_print_debug_stacks", "KEY_KEY_P");

@@ -1379,6 +1379,7 @@ void KeyCache::populate()
 	key[KeyType::QUICKTUNE_DEC]  = getKeySetting("keymap_quicktune_dec");
 
 	key[KEYMAP_ID_TOGGLE_HMD_PREVIEW] = getKeySetting("keymap_toggle_hmd_preview");
+	key[KEYMAP_ID_HMD_RECENTER]  = getKeySetting("keymap_hmd_recenter");
 	key[KeyType::DEBUG_STACKS]   = getKeySetting("keymap_print_debug_stacks");
 
 	if (handler) {
@@ -2816,6 +2817,8 @@ void Game::processKeyInput(VolatileRunFlags *flags,
 		quicktune->dec();
 	} else if (wasKeyDown(KeyType::TOGGLE_HMD_PREVIEW)) {
 		client->getHMD()->togglePreview();
+	} else if (wasKeyDown(KeyType::HMD_RECENTER)) {
+		client->getHMD()->reCenter();
 	} else if (wasKeyDown(KeyType::DEBUG_STACKS)) {
 		// Print debug stacks
 		dstream << "-----------------------------------------"
