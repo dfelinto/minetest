@@ -128,7 +128,7 @@ static void draw_image(
 	const irr::core::vector3df& position,
 	const irr::core::vector3df& forward,
 	const irr::core::matrix4& projectionMatrix,
-	const irr::core::matrix4& startMatrix,
+	const irr::core::vector3df& startPosition,
 	bool show_hud,
 	video::IVideoDriver* driver, Camera& camera, scene::ISceneManager* smgr,
 	Hud& hud, std::vector<aabb3f>& hilightboxes,
@@ -138,10 +138,8 @@ static void draw_image(
 	scene::ICameraSceneNode *cameraNode = camera.getCameraNode();
 
 	irr::core::vector3df eye_pos, target;
-	irr::core::matrix4 movement;
-	movement.setTranslation(position);
 
-	eye_pos = (startMatrix * movement).getTranslation();
+	eye_pos = startPosition + position;
 
 	driver->setRenderTarget(image, true, true,
 		irr::video::SColor(255,
@@ -509,13 +507,9 @@ void draw_hmd_3d_mode(Camera& camera, bool show_hud,
 	irr::core::vector3df oldTarget = cameraNode->getTarget();
 	irr::core::matrix4 oldProjectionMatrix = cameraNode->getProjectionMatrix();
 
-	irr::core::matrix4 startMatrix = cameraNode->getAbsoluteTransformation();
-	irr::core::vector3df focusPoint = (cameraNode->getTarget()
-		- cameraNode->getAbsolutePosition()).setLength(1)
-		+ cameraNode->getAbsolutePosition();
-
+	irr::core::vector3df startPosition = cameraNode->getAbsolutePosition();
 	irr::core::vector3df forward = (cameraNode->getTarget()
-		- cameraNode->getAbsolutePosition()).setLength(1);
+		- startPosition).setLength(1);
 
 	/* HMD */
 	HMDManager *hmd = client.getHMD();
@@ -542,7 +536,7 @@ void draw_hmd_3d_mode(Camera& camera, bool show_hud,
 		position,
 		forward,
 		projectionMatrix,
-		startMatrix,
+		startPosition,
 		show_hud, driver, camera, smgr, hud, hilightboxes,
 		draw_wield_tool, client, guienv, skycolor);
 
@@ -557,7 +551,7 @@ void draw_hmd_3d_mode(Camera& camera, bool show_hud,
 		position,
 		forward,
 		projectionMatrix,
-		startMatrix,
+		startPosition,
 		show_hud, driver, camera, smgr, hud, hilightboxes,
 		draw_wield_tool, client, guienv, skycolor);
 
