@@ -22,7 +22,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "hmd_bridge.h"
 
 #include "HMD.h"
-#include "Oculus.h"
 
 #include <iostream>
 
@@ -46,7 +45,7 @@ HMDManager::HMDManager(
 	std::string displayBackend = g_settings->get("hmd_display_backend");
 
 	if (displayBackend == "oculus") {
-		m_hmd = new Oculus();
+		m_hmd = new HMD();
 	}
 	else if (displayBackend == "oculus_legacy") {
 		std::cout << "HMD Error: Display backend not supported via DLL (" << displayBackend << ")" << std::endl;
@@ -168,8 +167,8 @@ bool HMDManager::loop()
 	}
 
 	return m_hmd->update(
-		&m_yaw[HMD_LEFT], &m_pitch[HMD_LEFT], &m_roll[HMD_LEFT], m_positionRaw[HMD_LEFT],
-		&m_yaw[HMD_RIGHT], &m_pitch[HMD_RIGHT], &m_roll[HMD_RIGHT], m_positionRaw[HMD_RIGHT]);
+		&m_yaw[HMD_LEFT], &m_pitch[HMD_LEFT], &m_roll[HMD_LEFT], m_orientationRaw[HMD_LEFT], m_positionRaw[HMD_LEFT],
+		&m_yaw[HMD_RIGHT], &m_pitch[HMD_RIGHT], &m_roll[HMD_RIGHT], m_orientationRaw[HMD_RIGHT],  m_positionRaw[HMD_RIGHT]);
 }
 
 void HMDManager::getPosition(int eye, irr::core::vector3df& position)
