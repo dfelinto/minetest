@@ -22,7 +22,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "ITexture.h"
 #include "IVideoDriver.h"
-#include "HMD.h"
+#include "HMD_Bridge_API.h"
 #include "quaternion.h"
 
 class HMDManager

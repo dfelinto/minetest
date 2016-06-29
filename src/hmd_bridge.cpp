@@ -21,9 +21,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "hmd_bridge.h"
 
-#include "HMD.h"
+#include "HMD_Bridge_API.h"
 
 #include <iostream>
+#include <cassert>
+
 
 #pragma comment(lib, "Irrlicht.lib")
 
@@ -193,9 +195,9 @@ void HMDManager::getOrientation(int eye, core::quaternion& orientation)
 
 void HMDManager::getEuler(int eye, float *r_yaw, float *r_pitch, float *r_roll)
 {
-	*r_yaw = RadToDegree(m_yaw[eye]);
-	*r_pitch = -RadToDegree(m_pitch[eye]);
-	*r_roll = RadToDegree(m_roll[eye]);
+	*r_yaw = irr::core::radToDeg(m_yaw[eye]);
+	*r_pitch = -irr::core::radToDeg(m_pitch[eye]);
+	*r_roll = irr::core::radToDeg(m_roll[eye]);
 }
 
 void HMDManager::getProjectionMatrix(int eye, const float nearz, const float farz, irr::core::matrix4& matrix)
