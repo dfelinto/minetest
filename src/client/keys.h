@@ -65,6 +65,9 @@ public:
 		QUICKTUNE_INC,
 		QUICKTUNE_DEC,
 
+		TOGGLE_HMD_PREVIEW,
+		HMD_RECENTER,
+
 		DEBUG_STACKS,
 
 		// joystick specific keys

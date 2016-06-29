@@ -60,7 +60,9 @@ struct PlayerControl
 		bool a_RMB,
 		float a_pitch,
 		float a_yaw,
-		float a_roll
+		float a_roll,
+		float a_sidew_move_joystick_axis,
+		float a_forw_move_joystick_axis
 	)
 	{
 		up = a_up;

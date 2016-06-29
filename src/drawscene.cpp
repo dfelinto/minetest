@@ -131,8 +131,8 @@ static void draw_image(
 	const irr::core::vector3df& startPosition,
 	bool show_hud,
 	video::IVideoDriver* driver, Camera& camera, scene::ISceneManager* smgr,
-	Hud& hud, std::vector<aabb3f>& hilightboxes,
-	bool draw_wield_tool, Client& client, gui::IGUIEnvironment* guienv,
+	Hud& hud, bool draw_wield_tool,
+	Client& client, gui::IGUIEnvironment* guienv,
 	video::SColor skycolor)
 {
 	scene::ICameraSceneNode *cameraNode = camera.getCameraNode();
@@ -495,7 +495,7 @@ void draw_pageflip_3d_mode(Camera& camera, bool show_hud,
 }
 
 void draw_hmd_3d_mode(Camera& camera, bool show_hud,
-		Hud& hud, std::vector<aabb3f> hilightboxes, video::IVideoDriver* driver,
+		Hud& hud, video::IVideoDriver* driver,
 		scene::ISceneManager* smgr, const v2u32& screensize,
 		bool draw_wield_tool, Client& client, gui::IGUIEnvironment* guienv,
 		video::SColor skycolor)
@@ -537,7 +537,7 @@ void draw_hmd_3d_mode(Camera& camera, bool show_hud,
 		forward,
 		projectionMatrix,
 		startPosition,
-		show_hud, driver, camera, smgr, hud, hilightboxes,
+		show_hud, driver, camera, smgr, hud,
 		draw_wield_tool, client, guienv, skycolor);
 
 	/* create right view */
@@ -552,7 +552,7 @@ void draw_hmd_3d_mode(Camera& camera, bool show_hud,
 		forward,
 		projectionMatrix,
 		startPosition,
-		show_hud, driver, camera, smgr, hud, hilightboxes,
+		show_hud, driver, camera, smgr, hud,
 		draw_wield_tool, client, guienv, skycolor);
 
 	/* show rendered result in the HMD */
@@ -662,7 +662,7 @@ void draw_scene(video::IVideoDriver *driver, scene::ISceneManager *smgr,
 	}
 	else if (draw_mode == "hmd")
 	{
-		draw_hmd_3d_mode(camera, show_hud, hud, hilightboxes, driver,
+		draw_hmd_3d_mode(camera, show_hud, hud, driver,
 			smgr, screensize, draw_wield_tool, client, guienv, skycolor);
 		show_hud = false;
 	}

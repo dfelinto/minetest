@@ -1378,8 +1378,8 @@ void KeyCache::populate()
 	key[KeyType::QUICKTUNE_INC]  = getKeySetting("keymap_quicktune_inc");
 	key[KeyType::QUICKTUNE_DEC]  = getKeySetting("keymap_quicktune_dec");
 
-	key[KEYMAP_ID_TOGGLE_HMD_PREVIEW] = getKeySetting("keymap_toggle_hmd_preview");
-	key[KEYMAP_ID_HMD_RECENTER]  = getKeySetting("keymap_hmd_recenter");
+	key[KeyType::TOGGLE_HMD_PREVIEW] = getKeySetting("keymap_toggle_hmd_preview");
+	key[KeyType::HMD_RECENTER] = getKeySetting("keymap_hmd_recenter");
 	key[KeyType::DEBUG_STACKS]   = getKeySetting("keymap_print_debug_stacks");
 
 	if (handler) {
