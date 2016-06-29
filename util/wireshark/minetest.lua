@@ -864,7 +864,7 @@ do
 			-- caused the server to serialize the pitch and yaw
 			-- with 2 bytes each instead of 4, creating a
 			-- malformed message.
-			if buffer:len() >= 24 then
+			if buffer:len() >= 26 then
 				t:add(f_pitch, buffer(14, 4))
 				t:add(f_yaw, buffer(18, 4))
 				t:add(f_roll, buffer(22, 4))
